@@ -1,127 +1,3 @@
-
-Claude hat die Antwort abgeschlossen
-
-<!DOCTYPE html> <html lang="de"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width, initial-scale=1.0"> <title>ITB.BERICHTE – Auswertung</title> <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script> <script src="https://cdnjs
-
-pasted
-
-möchte daran weiter bauen
-
-09:11
-Was möchtest du konkret verbessern oder hinzufügen?
-
-F: In welchem Bereich willst du weiterarbeiten? (Wähle alle zutreffenden aus)
-A: Neues Feature
-
-09:11
-Was für ein neues Feature schwebt dir vor?
-
-F: Was soll das neue Feature machen?
-A: Etwas anderes – ich beschreibe es
-
-09:11
-Beschreib einfach was du dir vorstellst – so detailliert oder grob wie du möchtest!
-
-ist in der logick enthalten das wenn der KM für mehrer fahret gleich bleibt auch angezeigt wird?
-
-10:53
-Nein, das ist aktuell nicht enthalten. Die Logik prüft nur ob km_ist ≠ km_soll (also ob der eingetragene KM-Wert nicht mit der Differenz aus KM-Ständen übereinstimmt) – aber wenn der KM-Stand bei mehreren aufeinanderfolgenden Fahrten gleich bleibt (also gar nicht steigt), wird das nicht als Fehler markiert.
-
-Das wäre ein sinnvoller Check: KM-Stand-Duplikate – wenn kmStand[n] === kmStand[n-1], obwohl eine Fahrt stattgefunden hat.
-
-Soll ich das einbauen? Ich könnte es als eigene Fehlerklasse anzeigen, z.B.:
-
-X = KM-Wert falsch (wie bisher)
-= = KM-Stand unverändert (neu)
-Oder beides einfach als allgemeinen Fehler zusammenfassen?
-
-ja genau aber bei unverändert erst nachdem 20 Fahrten gleich sind
-
-10:57
-Also erst ein Fehler wenn der KM-Stand 20 Fahrten lang identisch bleibt – das macht Sinn, um kurze Standzeiten / Rangierfahrten nicht als Fehler zu werten.
-
-Ich baue das ein:
-
-Schwelle: 20 aufeinanderfolgende Fahrten mit gleichem KM-Stand → Fehler
-Eigene Kennzeichnung z.B. ≡ oder eigene Farbe, damit man den Unterschied sieht
-Wird in der Fehlertabelle und im Download markiert
-
-Reading the frontend-design skill
-Reading the frontend-design skill
-Gut, ich baue das jetzt direkt in den bestehenden Code ein.
-
-
-Datei erstellt, datei lesen
-Datei erstellt, datei lesen
-Das ist drin. Was sich geändert hat:
-
-Neue Logik – eingefrorener KM-Stand:
-
-Zählt bei jeder Gruppe mit, wie viele aufeinanderfolgende Fahrten denselben KM-Stand haben
-Erst ab Fahrt Nr. 20 (und alle danach) wird die Zeile als Fehler markiert
-Ändert sich der KM-Stand wieder → Zähler wird zurückgesetzt
-Neue Anzeige:
-
-Viertes Stat-Feld: „Eingefrorene KM-Stände" (orange)
-Tag ≡ (orange) statt X (rot) in der Tabelle, damit man sofort den Unterschied sieht
-Legende unter den Stats erklärt beide Fehlertypen
-Im Download wird die letzte Spalte ebenfalls orange mit ≡ markiert (statt rot/X)
-Fahrzeug-Chips zeigen z.B. ⚠ KE-12AB (3 X, 7 ≡) wenn beides vorkommt
-
-Itb berichte
-Code · HTML 
-1781082693563_image.png
-zeige hier nur die ANzahl der Fahrzeuge
-
-11:11
-Kleine Änderung – statt der Gesamtanzahl betroffener Zeilen nur die Anzahl der Fahrzeuge mit eingefrorenem KM-Stand anzeigen.
-
-
-3 Dateien angesehen, hat eine Datei bearbeitet
-3 Dateien angesehen, hat eine Datei bearbeitet
-Auch das Label im Stat-Box anpassen:
-
-
-Hat eine Datei bearbeitet, hat einen Befehl ausgeführt, datei lesen
-Hat eine Datei bearbeitet, hat einen Befehl ausgeführt, datei lesen
-Erledigt. Das Feld zeigt jetzt die Anzahl der Fahrzeuge mit eingefrorenem KM-Stand (also wie viele verschiedene Kennzeichen betroffen sind), nicht mehr die Gesamtzahl der Zeilen. Label wurde auf „Fahrzeuge mit eingefr. KM" angepasst.
-
-
-Itb berichte
-Code · HTML 
-baue es um auf 10 Fahrten = Fehler
-
-11:29
-
-Hat einen Befehl ausgeführt, datei lesen
-Hat einen Befehl ausgeführt, datei lesen
-Geändert – Schwelle ist jetzt 10 Fahrten. Der Hinweistext in der Detail-Ansicht (Schwelle: 10 Fahrten) passt sich automatisch an, da er die Konstante direkt ausgibt.
-
-
-Itb berichte
-Code · HTML 
-baue es wieder um auf 20
-
-13:47
-
-Hat einen Befehl ausgeführt, datei lesen
-Hat einen Befehl ausgeführt, datei lesen
-Zurück auf 20 Fahrten.
-
-
-Itb berichte
-Code · HTML 
-
-Möchtest du benachrichtigt werden, wenn Claude antwortet?
-
-
-
-
-Claude ist eine KI und kann Fehler machen. Bitte überprüfe die Antworten.
-
-
-raw
-Itb berichte · HTML
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -132,9 +8,9 @@ Itb berichte · HTML
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap');
- 
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
   :root {
     --bg: #0f0f0f;
     --surface: #1a1a1a;
@@ -146,7 +22,7 @@ Itb berichte · HTML
     --text: #f0f0f0;
     --muted: #666;
   }
- 
+
   body {
     background: var(--bg);
     color: var(--text);
@@ -157,7 +33,7 @@ Itb berichte · HTML
     align-items: center;
     padding: 32px 16px 64px;
   }
- 
+
   header {
     width: 100%;
     max-width: 960px;
@@ -165,11 +41,11 @@ Itb berichte · HTML
     border-bottom: 1px solid var(--border);
     padding-bottom: 24px;
   }
- 
+
   h1 { font-family: 'Syne', Arial, sans-serif; font-weight: 800; font-size: 2.2rem; letter-spacing: -1px; line-height: 1; }
   h1 span { color: var(--accent); }
   .subtitle { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px; }
- 
+
   /* ── TABS ── */
   .tabs {
     width: 100%; max-width: 960px;
@@ -184,10 +60,10 @@ Itb berichte · HTML
   }
   .tab:hover { color: var(--text); }
   .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
- 
+
   .view { display: none; width: 100%; max-width: 960px; flex-direction: column; align-items: center; }
   .view.active { display: flex; }
- 
+
   /* ── DROP-ZONE ── */
   .drop-zone {
     width: 100%;
@@ -199,15 +75,15 @@ Itb berichte · HTML
   }
   .drop-zone.drag-over { border-color: var(--accent); background: rgba(232,255,71,0.04); }
   .drop-zone.has-file  { border-color: #333; }
- 
+
   .drop-icon  { font-size: 2.8rem; margin-bottom: 12px; display: block; }
   .drop-label { font-family: 'Syne', Arial, sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
   .drop-sub   { font-size: 0.72rem; color: var(--muted); margin-bottom: 20px; }
- 
+
   .file-row { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
- 
+
   input[type="file"] { display: none; }
- 
+
   .btn-choose {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 10px 22px; background: var(--surface); color: var(--text);
@@ -216,7 +92,7 @@ Itb berichte · HTML
     letter-spacing: 0.04em; transition: border-color 0.15s; user-select: none;
   }
   .btn-choose:hover { border-color: var(--accent); color: var(--accent); }
- 
+
   .btn-run {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 10px 26px; background: var(--accent); color: #000;
@@ -226,7 +102,7 @@ Itb berichte · HTML
   }
   .btn-run:hover:not(:disabled) { opacity: 0.85; transform: translateY(-1px); }
   .btn-run:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
- 
+
   .filename-chip {
     display: inline-flex; align-items: center; gap: 8px;
     background: var(--surface); border: 1px solid #333; border-radius: 2px;
@@ -234,7 +110,7 @@ Itb berichte · HTML
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     color: var(--accent); margin-bottom: 16px;
   }
- 
+
   /* ── FILE-LIST (Merger) ── */
   .file-list { width: 100%; margin-top: 20px; }
   .file-item {
@@ -257,7 +133,7 @@ Itb berichte · HTML
   }
   .icon-btn:hover { color: var(--accent); border-color: var(--accent); }
   .icon-btn.del:hover { color: var(--red); border-color: var(--red); }
- 
+
   /* ── STATUS / LOADING ── */
   .status-bar {
     width: 100%; margin-top: 20px;
@@ -267,14 +143,14 @@ Itb berichte · HTML
   .status-bar.visible { display: block; }
   .status-bar.error   { border-color: var(--red); color: var(--red); }
   .status-bar.success { border-color: var(--green); color: var(--green); }
- 
+
   .loading {
     display: none; width: 100%;
     margin-top: 24px; text-align: center;
     padding: 32px; color: var(--muted); font-size: 0.8rem;
   }
   .loading.visible { display: block; }
- 
+
   .spinner {
     display: inline-block; width: 22px; height: 22px;
     border: 2px solid var(--border); border-top-color: var(--accent);
@@ -282,22 +158,22 @@ Itb berichte · HTML
     vertical-align: middle; margin-right: 10px;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
- 
+
   /* ── RESULTS ── */
   .results { width: 100%; margin-top: 32px; display: none; }
   .results.visible { display: block; }
- 
+
   .results-header {
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
   }
   .results-title { font-family: 'Syne', Arial, sans-serif; font-weight: 700; font-size: 1.1rem; }
- 
+
   .badge { padding: 5px 12px; border-radius: 2px; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; }
   .badge-red    { background: rgba(255,68,68,0.15);  color: var(--red);   border: 1px solid rgba(255,68,68,0.3); }
   .badge-green  { background: rgba(68,255,136,0.12); color: var(--green); border: 1px solid rgba(68,255,136,0.25); }
   .badge-orange { background: rgba(255,153,68,0.15); color: var(--orange);border: 1px solid rgba(255,153,68,0.3); }
- 
+
   .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
   .stat-box { background: var(--surface); border: 1px solid var(--border); padding: 16px 20px; border-radius: 2px; }
   .stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
@@ -306,7 +182,7 @@ Itb berichte · HTML
   .stat-value.green  { color: var(--green); }
   .stat-value.yellow { color: var(--accent); }
   .stat-value.orange { color: var(--orange); }
- 
+
   /* ── LEGEND ── */
   .legend {
     display: flex; gap: 20px; flex-wrap: wrap;
@@ -315,7 +191,7 @@ Itb berichte · HTML
     font-size: 0.72rem; color: var(--muted);
   }
   .legend-item { display: flex; align-items: center; gap: 8px; }
- 
+
   .kz-section { margin-bottom: 28px; }
   .kz-header {
     display: flex; align-items: center; gap: 12px;
@@ -333,7 +209,7 @@ Itb berichte · HTML
   .kz-toggle { font-size: 0.7rem; color: var(--muted); margin-left: 8px; }
   .kz-body { display: block; }
   .kz-body.collapsed { display: none; }
- 
+
   .dl-row { display: flex; justify-content: flex-end; margin-bottom: 16px; }
   .btn-dl {
     display: inline-flex; align-items: center; gap: 8px;
@@ -343,7 +219,7 @@ Itb berichte · HTML
     letter-spacing: 0.05em; transition: background 0.15s;
   }
   .btn-dl:hover { background: rgba(232,255,71,0.08); }
- 
+
   .error-table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 0.75rem; }
   thead tr { background: var(--surface); border-bottom: 1px solid var(--border); }
@@ -353,7 +229,7 @@ Itb berichte · HTML
   }
   td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); white-space: nowrap; }
   tr:hover td { background: rgba(255,255,255,0.025); }
- 
+
   /* ── STATUS TAGS ── */
   .tag-x {
     display: inline-block; background: var(--red); color: #fff;
@@ -369,13 +245,13 @@ Itb berichte · HTML
     display: inline-block; background: rgba(68,255,136,0.15); color: var(--green);
     font-size: 0.65rem; padding: 2px 9px; border-radius: 2px; letter-spacing: 0.05em;
   }
- 
+
   .ok-note {
     margin-top: 16px; font-size: 0.72rem; color: var(--muted);
     text-align: center; padding: 12px;
     border: 1px solid var(--border); border-radius: 2px;
   }
- 
+
   .all-ok {
     padding: 40px 32px; text-align: center;
     border: 1px solid rgba(68,255,136,0.2); border-radius: 4px;
@@ -383,7 +259,7 @@ Itb berichte · HTML
   }
   .all-ok .big { font-family: 'Syne', Arial, sans-serif; font-size: 2.4rem; font-weight: 800; color: var(--green); margin-bottom: 8px; }
   .all-ok .sub { font-size: 0.78rem; color: var(--muted); }
- 
+
   .kz-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
   .kz-chip {
     padding: 5px 14px; border-radius: 2px; font-size: 0.72rem;
@@ -396,7 +272,7 @@ Itb berichte · HTML
   .kz-chip.active { background: rgba(232,255,71,0.12); color: var(--accent); border: 1px solid rgba(232,255,71,0.35); }
   .kz-chip.pto    { background: rgba(68,255,136,0.12); color: var(--green);  border: 1px solid rgba(68,255,136,0.35); }
   .kz-chip.idle   { background: var(--surface); color: var(--muted); border: 1px solid var(--border); }
- 
+
   .kz-overview {
     width: 100%; margin-top: 24px; padding: 16px;
     background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
@@ -408,37 +284,37 @@ Itb berichte · HTML
   }
   .kz-overview-title .count { color: var(--accent); font-size: 0.72rem; }
   .kz-overview-empty { font-size: 0.72rem; color: var(--muted); text-align: center; padding: 8px; }
- 
+
   /* frozen section info bar */
   .frozen-info {
     margin-bottom: 10px; padding: 10px 16px;
     background: rgba(255,153,68,0.07); border: 1px solid rgba(255,153,68,0.25);
     border-radius: 2px; font-size: 0.72rem; color: var(--orange);
   }
- 
+
   @media (max-width: 600px) {
     .summary-grid { grid-template-columns: repeat(2,1fr); }
   }
 </style>
 </head>
 <body>
- 
+
 <header>
   <h1>ITB<span>.</span>BERICHTE</h1>
 </header>
- 
+
 <nav class="tabs">
   <button class="tab active" data-view="pruef">KM-Pruefung</button>
   <button class="tab" data-view="merge">PTO-Erkennung</button>
 </nav>
- 
+
 <!-- ════════════════════════════════════════════════════════════════
      VIEW 1 – KM-PRUEFUNG
      ════════════════════════════════════════════════════════════════ -->
 <section class="view active" id="view-pruef">
- 
+
   <input type="file" id="pruef-file-input" accept=".xlsx">
- 
+
   <div class="drop-zone" id="pruef-drop">
     <span class="drop-icon">📂</span>
     <div class="drop-label">XLSX-Datei hier ablegen</div>
@@ -449,23 +325,23 @@ Itb berichte · HTML
       <button class="btn-run" id="pruef-run" disabled>▶ Pruefung starten</button>
     </div>
   </div>
- 
+
   <div class="status-bar" id="pruef-status"></div>
   <div class="loading" id="pruef-loading"><span class="spinner"></span>Datei wird analysiert…</div>
- 
+
   <div class="results" id="pruef-results">
     <div class="results-header">
       <div class="results-title">Pruefergebnis</div>
       <div id="result-badge"></div>
     </div>
- 
+
     <div class="summary-grid">
       <div class="stat-box"><div class="stat-label">Fahrzeuge gesamt</div><div class="stat-value yellow" id="stat-vehicles">—</div></div>
       <div class="stat-box"><div class="stat-label">Fahrten gesamt</div><div class="stat-value yellow" id="stat-total">—</div></div>
       <div class="stat-box"><div class="stat-label">KM-Fehler</div><div class="stat-value red" id="stat-errors">—</div></div>
       <div class="stat-box"><div class="stat-label">Fahrzeuge mit eingefr. KM</div><div class="stat-value orange" id="stat-frozen">—</div></div>
     </div>
- 
+
     <!-- Legende -->
     <div class="legend">
       <div class="legend-item">
@@ -477,24 +353,24 @@ Itb berichte · HTML
         <span>KM-Stand unveraendert seit 20+ Fahrten</span>
       </div>
     </div>
- 
+
     <div id="kz-chips-wrap" class="kz-chips"></div>
- 
+
     <div id="dl-row-wrap" style="display:none" class="dl-row">
       <button class="btn-dl" id="dl-btn">⬇ Markierte XLSX herunterladen</button>
     </div>
- 
+
     <div id="result-content"></div>
   </div>
 </section>
- 
+
 <!-- ════════════════════════════════════════════════════════════════
      VIEW 2 – PTO-ERKENNUNG
      ════════════════════════════════════════════════════════════════ -->
 <section class="view" id="view-merge">
- 
+
   <input type="file" id="merge-file-input" accept=".xlsx" multiple>
- 
+
   <div class="drop-zone" id="merge-drop">
     <span class="drop-icon">⚙</span>
     <div class="drop-label">XLSX-Dateien hier ablegen</div>
@@ -504,7 +380,7 @@ Itb berichte · HTML
     </div>
     <div class="file-list" id="merge-list"></div>
   </div>
- 
+
   <div class="kz-overview" id="merge-kz-overview" style="display:none">
     <div class="kz-overview-title">
       <span>Kennzeichen mit aktivem PTO</span>
@@ -512,17 +388,17 @@ Itb berichte · HTML
     </div>
     <div id="merge-kz-chips"></div>
   </div>
- 
+
   <div class="status-bar" id="merge-status"></div>
   <div class="loading" id="merge-loading"><span class="spinner"></span>Dateien werden analysiert…</div>
 </section>
- 
+
 <script>
 /* ════════════════════════════════════════════════════════════════
    CONSTANTS
    ════════════════════════════════════════════════════════════════ */
 var FROZEN_THRESHOLD = 20; // Anzahl Fahrten mit gleichem KM-Stand → Warnung
- 
+
 /* ════════════════════════════════════════════════════════════════
    TAB SWITCHING
    ════════════════════════════════════════════════════════════════ */
@@ -535,7 +411,7 @@ document.querySelectorAll('.tab').forEach(function(tab) {
     document.getElementById('view-' + view).classList.add('active');
   });
 });
- 
+
 /* ════════════════════════════════════════════════════════════════
    VIEW 1 – KM-PRUEFUNG
    ════════════════════════════════════════════════════════════════ */
@@ -543,11 +419,11 @@ var currentFile  = null;
 var errorRowsRef = [];   // Typ-X Fehler (KM falsch)
 var frozenRowsRef = [];  // Typ-≡ Fehler (KM eingefroren)
 var rawFileRef   = null;
- 
+
 var pruefInput = document.getElementById('pruef-file-input');
 var pruefRun   = document.getElementById('pruef-run');
 var pruefDrop  = document.getElementById('pruef-drop');
- 
+
 pruefInput.addEventListener('change', function(e) {
   if (e.target.files[0]) setPruefFile(e.target.files[0]);
 });
@@ -557,7 +433,7 @@ pruefDrop.addEventListener('drop', function(e) {
   e.preventDefault(); pruefDrop.classList.remove('drag-over');
   if (e.dataTransfer.files[0]) setPruefFile(e.dataTransfer.files[0]);
 });
- 
+
 function setPruefFile(file) {
   currentFile = file;
   document.getElementById('pruef-filename').innerHTML = '<div class="filename-chip">✓ ' + file.name + '</div>';
@@ -566,14 +442,14 @@ function setPruefFile(file) {
   hidePruefResults();
   setStatus('pruef-status', '', '');
 }
- 
+
 pruefRun.addEventListener('click', function() {
   if (!currentFile) return;
   pruefRun.disabled = true;
   document.getElementById('pruef-loading').classList.add('visible');
   hidePruefResults();
   setStatus('pruef-status', '', '');
- 
+
   var reader = new FileReader();
   reader.onload = function(e) {
     try {
@@ -590,12 +466,12 @@ pruefRun.addEventListener('click', function() {
   };
   reader.readAsArrayBuffer(currentFile);
 });
- 
+
 function cellVal(ws, r, c) {
   var cell = ws[XLSX.utils.encode_cell({ r: r, c: c })];
   return cell ? cell.v : undefined;
 }
- 
+
 function extractKennzeichen(str) {
   if (typeof str !== 'string') return null;
   var m = str.match(/\/\s*([A-ZAEOEUE0-9][\w\s\-]{1,12})$/i);
@@ -604,7 +480,7 @@ function extractKennzeichen(str) {
   if (m2) return m2[1].trim().toUpperCase();
   return null;
 }
- 
+
 function formatTime(val) {
   if (!val) return '';
   if (val instanceof Date) {
@@ -618,7 +494,7 @@ function formatTime(val) {
   }
   return String(val);
 }
- 
+
 function analyze(ws) {
   var range = XLSX.utils.decode_range(ws['!ref']);
   var maxRow = range.e.r;
@@ -627,12 +503,12 @@ function analyze(ws) {
   var currentGroup = null;
   var prevKmStand = null;
   var currentDatum = '—';
- 
+
   // Pro Gruppe: laufender Zähler für gleichbleibende KM-Stände
   // und Puffer der letzten Fahrten (für Schwellenerkennung)
   var sameKmCount = 0;
   var frozenAlreadyReported = false; // verhindert Doppelmeldung bei fortlaufend gleichen
- 
+
   for (var r = 0; r <= maxRow; r++) {
     var foundKZ = null;
     var foundDatum = null;
@@ -648,7 +524,7 @@ function analyze(ws) {
       }
     }
     if (foundDatum) currentDatum = foundDatum;
- 
+
     if (foundKZ && foundKZ !== currentKZ) {
       currentKZ = foundKZ;
       currentGroup = { kz: foundKZ, rows: [], errorRows: [], frozenRows: [] };
@@ -658,14 +534,14 @@ function analyze(ws) {
       frozenAlreadyReported = false;
       continue;
     }
- 
+
     if (!currentGroup) continue;
- 
+
     var kmStand = cellVal(ws, r, 10);
     var km      = cellVal(ws, r, 8);
     var start   = cellVal(ws, r, 0);
     var stop    = cellVal(ws, r, 1);
- 
+
     if (typeof kmStand === 'number' && kmStand > 10000) {
       var kmVal = (typeof km === 'number') ? km : 0;
       var row = {
@@ -676,7 +552,7 @@ function analyze(ws) {
         error: false, expectedKm: null,
         frozen: false
       };
- 
+
       if (prevKmStand !== null) {
         // ── Check 1: KM-Wert falsch ─────────────────────────────
         var diff = Math.round((kmStand - prevKmStand) * 10) / 10;
@@ -687,7 +563,7 @@ function analyze(ws) {
           currentGroup.errorRows.push(row);
           errorRowsRef.push(row);
         }
- 
+
         // ── Check 2: KM-Stand eingefroren ───────────────────────
         if (kmStand === prevKmStand) {
           sameKmCount++;
@@ -710,17 +586,17 @@ function analyze(ws) {
           frozenAlreadyReported = false;
         }
       }
- 
+
       currentGroup.rows.push(row);
       prevKmStand = kmStand;
     }
   }
- 
+
   document.getElementById('pruef-loading').classList.remove('visible');
   showResults(groups);
   pruefRun.disabled = false;
 }
- 
+
 function showResults(groups) {
   var totalTrips = 0, totalErrors = 0, totalFrozen = 0, affectedKZs = 0;
   groups.forEach(function(g) {
@@ -729,12 +605,12 @@ function showResults(groups) {
     if (g.frozenRows.length > 0) totalFrozen++;
     if (g.errorRows.length > 0 || g.frozenRows.length > 0) affectedKZs++;
   });
- 
+
   document.getElementById('stat-vehicles').textContent = groups.length;
   document.getElementById('stat-total').textContent    = totalTrips;
   document.getElementById('stat-errors').textContent   = totalErrors;
   document.getElementById('stat-frozen').textContent   = totalFrozen;
- 
+
   // Badge
   var hasAnyIssue = totalErrors > 0 || totalFrozen > 0;
   var badgeParts = [];
@@ -743,7 +619,7 @@ function showResults(groups) {
   document.getElementById('result-badge').innerHTML = hasAnyIssue
     ? badgeParts.join(' ')
     : '<span class="badge badge-green">✓ Alle Zeilen korrekt</span>';
- 
+
   // Chips
   var chipsHtml = '';
   groups.forEach(function(g) {
@@ -762,9 +638,9 @@ function showResults(groups) {
     chipsHtml += '</div>';
   });
   document.getElementById('kz-chips-wrap').innerHTML = chipsHtml;
- 
+
   var content = document.getElementById('result-content');
- 
+
   if (!hasAnyIssue) {
     content.innerHTML =
       '<div class="all-ok"><div class="big">✓ ALLES OK</div>' +
@@ -776,17 +652,17 @@ function showResults(groups) {
       var hasErr    = g.errorRows.length > 0;
       var hasFrozen = g.frozenRows.length > 0;
       var hasAny = hasErr || hasFrozen;
- 
+
       var headerCls = 'kz-header';
       if (hasErr && hasFrozen) headerCls += ' mixed-kz';
       else if (hasErr)         headerCls += ' error-kz';
       else if (hasFrozen)      headerCls += ' frozen-kz';
- 
+
       var icon = hasErr ? '⚠' : (hasFrozen ? '≡' : '✓');
- 
+
       html += '<div class="kz-section"><div class="' + headerCls + '" onclick="toggleSection(this)">';
       html += '<span>' + icon + '</span><span class="kz-name">' + g.kz + '</span>';
- 
+
       if (hasAny) {
         var metaParts = [];
         if (g.errorRows.length  > 0) metaParts.push(g.errorRows.length  + ' KM-Fehler');
@@ -796,10 +672,10 @@ function showResults(groups) {
         html += '<span class="kz-meta" style="color:var(--green)">' + g.rows.length + ' Fahrten – OK</span>';
       }
       html += '<span class="kz-toggle">▼</span></div>';
- 
+
       var bodyCls = hasAny ? 'kz-body' : 'kz-body collapsed';
       html += '<div class="' + bodyCls + '">';
- 
+
       if (hasAny) {
         // Frozen-Hinweis wenn nötig
         if (hasFrozen) {
@@ -807,14 +683,14 @@ function showResults(groups) {
           html += (g.frozenRows.length === 1 ? ' Fahrt' : ' Fahrten');
           html += ' unveraendert (Schwelle: ' + FROZEN_THRESHOLD + ' Fahrten)</div>';
         }
- 
+
         // Alle Fehlerzeilen zusammen in einer Tabelle
         var allErrorRows = [];
         g.errorRows.forEach(function(r) { allErrorRows.push({ row: r, type: 'x' }); });
         g.frozenRows.forEach(function(r) { allErrorRows.push({ row: r, type: 'frozen' }); });
         // Sortieren nach Excel-Zeile
         allErrorRows.sort(function(a, b) { return a.row.excelRow - b.row.excelRow; });
- 
+
         html += '<div class="error-table-wrap"><table>';
         html += '<thead><tr><th>Zeile</th><th>Kennzeichen</th><th>Datum</th><th>Zeit</th><th>KM-Stand</th><th>KM ist</th><th>KM soll</th><th>Status</th></tr></thead><tbody>';
         allErrorRows.forEach(function(entry) {
@@ -848,7 +724,7 @@ function showResults(groups) {
   }
   document.getElementById('pruef-results').classList.add('visible');
 }
- 
+
 function toggleSection(header) {
   var body = header.nextElementSibling;
   var toggle = header.querySelector('.kz-toggle');
@@ -858,13 +734,13 @@ function toggleSection(header) {
     body.classList.add('collapsed'); toggle.textContent = '▶';
   }
 }
- 
+
 function colLetter(n) {
   var s = ''; n += 1;
   while (n > 0) { var r = (n-1)%26; s = String.fromCharCode(65+r)+s; n = Math.floor((n-1)/26); }
   return s;
 }
- 
+
 function downloadMarked() {
   JSZip.loadAsync(rawFileRef).then(function(zip) {
     var sheetKey = null;
@@ -879,19 +755,19 @@ function downloadMarked() {
     ]).then(function(results) {
       var sheetXml = results[0], stylesXml = results[1];
       var styleIdxRed = 0, styleIdxOrange = 0;
- 
+
       if (stylesXml) {
         // ── Rote Füllung (X-Fehler) ──────────────────────
         var fillRed    = '<fill><patternFill patternType="solid"><fgColor rgb="FFFF0000"/><bgColor indexed="64"/></patternFill></fill>';
         // ── Orange Füllung (Frozen) ──────────────────────
         var fillOrange = '<fill><patternFill patternType="solid"><fgColor rgb="FFFF8800"/><bgColor indexed="64"/></patternFill></fill>';
- 
+
         var fillsMatch = stylesXml.match(/<fills count="(\d+)">/);
         if (fillsMatch) {
           stylesXml = stylesXml.replace(/<\/fills>/, fillRed + fillOrange + '</fills>');
           stylesXml = stylesXml.replace(/<fills count="\d+">/, '<fills count="' + (parseInt(fillsMatch[1])+2) + '">');
         }
- 
+
         // ── Fetter weißer Font ───────────────────────────
         var fontXml = '<font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Calibri"/></font>';
         var fontsMatch = stylesXml.match(/<fonts count="(\d+)">/);
@@ -901,16 +777,16 @@ function downloadMarked() {
           stylesXml = stylesXml.replace(/<\/fonts>/, fontXml + '</fonts>');
           stylesXml = stylesXml.replace(/<fonts count="\d+">/, '<fonts count="' + (fontIdx+1) + '">');
         }
- 
+
         var allFills = stylesXml.match(/<fill>/g);
         var baseFillIdx = allFills ? allFills.length - 2 : 1; // -2 weil wir zwei hinzugefügt haben
         var orangeFillIdx = baseFillIdx + 1;
- 
+
         // Style für rote Zellen (X)
         var xfRed = '<xf numFmtId="0" fontId="' + fontIdx + '" fillId="' + baseFillIdx + '" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center" vertical="center"/></xf>';
         // Style für orange Zellen (≡)
         var xfOrange = '<xf numFmtId="0" fontId="' + fontIdx + '" fillId="' + orangeFillIdx + '" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center" vertical="center"/></xf>';
- 
+
         var cellXfsMatch = stylesXml.match(/<cellXfs count="(\d+)">/);
         if (cellXfsMatch) {
           styleIdxRed    = parseInt(cellXfsMatch[1]);
@@ -920,34 +796,34 @@ function downloadMarked() {
         }
         zip.file(stylesKey, stylesXml);
       }
- 
+
       var dimMatch = sheetXml.match(/<dimension ref="[^:]+:([A-Z]+)(\d+)"/);
       var lastColLetter = dimMatch ? dimMatch[1] : 'Y';
       var lastColIdx = 0;
       for (var ci = 0; ci < lastColLetter.length; ci++) lastColIdx = lastColIdx * 26 + lastColLetter.charCodeAt(ci) - 64;
       var xColLetter = colLetter(lastColIdx);
- 
+
       // Fehlertypen pro Zeile sammeln (X hat Vorrang)
       var rowMarkMap = {};
       errorRowsRef.forEach(function(er) { rowMarkMap[er.excelRow] = 'x'; });
       frozenRowsRef.forEach(function(fr) {
         if (!rowMarkMap[fr.excelRow]) rowMarkMap[fr.excelRow] = 'frozen';
       });
- 
+
       sheetXml = sheetXml.replace(/<row r="(\d+)"([^>]*)>([\s\S]*?)<\/row>/g, function(match, rowNum, attrs, inner) {
         var rn = parseInt(rowNum);
         var markType = rowMarkMap[rn];
         if (!markType) return match;
- 
+
         var cellRef = xColLetter + rowNum;
         if (inner.indexOf('r="' + cellRef + '"') !== -1) return match;
- 
+
         var label     = markType === 'x' ? 'X' : '\u2261'; // ≡
         var styleIdx  = markType === 'x' ? styleIdxRed : styleIdxOrange;
         var newCell   = '<c r="' + cellRef + '" t="inlineStr" s="' + styleIdx + '"><is><t>' + label + '</t></is></c>';
         return '<row r="' + rowNum + '"' + attrs + '>' + inner + newCell + '</row>';
       });
- 
+
       sheetXml = sheetXml.replace(/<dimension ref="([^:]+):([A-Z]+)(\d+)"/, function(m, start, col, row) {
         return '<dimension ref="' + start + ':' + xColLetter + row + '"';
       });
@@ -962,20 +838,20 @@ function downloadMarked() {
     });
   });
 }
- 
+
 function hidePruefResults() {
   document.getElementById('pruef-results').classList.remove('visible');
   document.getElementById('dl-row-wrap').style.display = 'none';
   errorRowsRef  = [];
   frozenRowsRef = [];
 }
- 
+
 function setStatus(id, msg, type) {
   var bar = document.getElementById(id);
   bar.textContent = msg;
   bar.className = 'status-bar' + (msg ? ' visible' : '') + (type ? ' ' + type : '');
 }
- 
+
 /* ════════════════════════════════════════════════════════════════
    VIEW 2 – PTO-ERKENNUNG
    ════════════════════════════════════════════════════════════════ */
@@ -983,7 +859,7 @@ var mergeFiles = [];
 var mergeAnalysisCache = new Map();
 var mergeInput = document.getElementById('merge-file-input');
 var mergeDrop  = document.getElementById('merge-drop');
- 
+
 mergeInput.addEventListener('change', function(e) {
   addMergeFiles(Array.from(e.target.files));
   mergeInput.value = '';
@@ -995,13 +871,13 @@ mergeDrop.addEventListener('drop', function(e) {
   var files = Array.from(e.dataTransfer.files).filter(function(f) { return f.name.toLowerCase().endsWith('.xlsx'); });
   addMergeFiles(files);
 });
- 
+
 function addMergeFiles(files) {
   files.forEach(function(f) { mergeFiles.push(f); });
   renderMergeList();
   analyzeMergeFiles();
 }
- 
+
 function renderMergeList() {
   var list = document.getElementById('merge-list');
   if (mergeFiles.length === 0) {
@@ -1021,14 +897,14 @@ function renderMergeList() {
   });
   list.innerHTML = html;
 }
- 
+
 function removeMerge(idx) {
   mergeFiles.splice(idx, 1);
   renderMergeList();
   setStatus('merge-status', '', '');
   renderKzOverview();
 }
- 
+
 function analyzeFileForInput(file) {
   if (mergeAnalysisCache.has(file)) return Promise.resolve(mergeAnalysisCache.get(file));
   return readFileBuf(file).then(function(buf) {
@@ -1041,7 +917,7 @@ function analyzeFileForInput(file) {
     var maxCol = Math.min(range.e.c, 20);
     var currentKZ = null;
     var kzMap = {};
- 
+
     for (var r = 0; r <= maxRow; r++) {
       var rowKZ = null;
       var rowHasInput = false;
@@ -1075,7 +951,7 @@ function analyzeFileForInput(file) {
     return result;
   }).catch(function() { return { kzMap: {} }; });
 }
- 
+
 function analyzeMergeFiles() {
   if (mergeFiles.length === 0) { renderKzOverview(); return; }
   document.getElementById('merge-loading').classList.add('visible');
@@ -1097,7 +973,7 @@ function analyzeMergeFiles() {
     setStatus('merge-status', 'Fehler bei Analyse: ' + err.message, 'error');
   });
 }
- 
+
 function renderKzOverview(combined) {
   var box = document.getElementById('merge-kz-overview');
   var chipsEl = document.getElementById('merge-kz-chips');
@@ -1122,7 +998,7 @@ function renderKzOverview(combined) {
   html += '</div>';
   chipsEl.innerHTML = html;
 }
- 
+
 function readFileBuf(f) {
   return new Promise(function(res, rej) {
     var fr = new FileReader();
@@ -1134,6 +1010,3 @@ function readFileBuf(f) {
 </script>
 </body>
 </html>
- 
-
-
