@@ -359,7 +359,7 @@
 <body>
 
 <header>
-  <h1>ITB<span>.</span>BERICHTE</h1>
+  <h1>ITB<span>.</span></h1>
 </header>
 
 <nav class="tabs">
@@ -378,7 +378,7 @@
   <div class="drop-zone" id="pruef-drop">
     <span class="drop-icon">📂</span>
     <div class="drop-label">XLSX-Datei hier ablegen</div>
-    <div class="drop-sub">Erkennt Kilometerspruenge aus dem Fahrten-Bericht (Es koennen auch mehrere Fahrzeuge gleichzeitig ausgewertet werden)</div>
+    <div class="drop-sub">Erkennt Kilometerspruenge und unveraenderte KM-Staende aus dem Fahrten-Bericht (Es koennen auch mehrere Fahrzeuge gleichzeitig ausgewertet werden)</div>
     <div id="pruef-filename"></div>
     <div class="file-row">
       <label for="pruef-file-input" class="btn-choose">📁 Datei auswaehlen</label>
@@ -425,16 +425,16 @@
 
     <div class="zc-input-row">
       <textarea class="zc-textarea" id="zc-input" rows="3"
-        placeholder="Paste $QR:ZCONFIG string here, e.g. $QR:ZCONFIG=0,0,0,1,0,0,0,0,0,1,0,1,…"></textarea>
+        placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE or $QR:ZVALUE2 string here…"></textarea>
       <button class="btn-run" style="flex-shrink:0" onclick="zcParse()">▶ Decode</button>
     </div>
 
 
 
     <div id="zc-filter-row" class="zc-filter-row" style="display:none">
-      <button class="zc-fbtn active" id="zc-f-all" onclick="zcFilter('all')">All bits</button>
-      <button class="zc-fbtn" id="zc-f-on"  onclick="zcFilter('on')">Active only</button>
-      <button class="zc-fbtn" id="zc-f-off" onclick="zcFilter('off')">Inactive only</button>
+      <button class="zc-fbtn active" id="zc-f-all" onclick="zcFilter('all')">All</button>
+      <button class="zc-fbtn" id="zc-f-on"  onclick="zcFilter('on')"><span id="zc-f-on-label">Active only</span></button>
+      <button class="zc-fbtn" id="zc-f-off" onclick="zcFilter('off')"><span id="zc-f-off-label">Inactive only</span></button>
     </div>
 
     <div id="zc-out"></div>
@@ -451,7 +451,7 @@
   <div class="drop-zone" id="merge-drop">
     <span class="drop-icon">⚙</span>
     <div class="drop-label">XLSX-Dateien hier ablegen</div>
-    <div class="drop-sub">Erkennt automatisch alle Kennzeichen mit mindestens einem aktiven PTO-Event (Detailbericht)</div>
+    <div class="drop-sub">Erkennt alle Fahrzeuge mit mindestens einem aktiven Input (Detailbericht)</div>
     <div class="file-row">
       <label for="merge-file-input" class="btn-choose">📁 Dateien auswaehlen</label>
     </div>
@@ -460,7 +460,7 @@
 
   <div class="kz-overview" id="merge-kz-overview" style="display:none">
     <div class="kz-overview-title">
-      <span>Kennzeichen mit aktivem PTO</span>
+      <span>Fahrzeuge mit aktivem PTO</span>
       <span class="count" id="merge-kz-count"></span>
     </div>
     <div id="merge-kz-chips"></div>
@@ -881,7 +881,7 @@ function setStatus(id, msg, type) {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   VIEW 2 – Z-CONFIG DECODER
+   VIEW 2 – DECODER  (ZCONFIG + ZVALUE)
    ════════════════════════════════════════════════════════════════ */
 var ZC_DEFS = {
   2:  'Replace value in [engine_temp] with value from 1-Wire temperature sensor',
@@ -903,7 +903,131 @@ var ZC_DEFS = {
   29: 'Replace values in [VoltageAnalog1] and [VoltageAnalog2] with voltages from input 1+ and 2+'
 };
 
+var ZC2_DEFS = {
+  1:  'Enable support for internal CAN module with internal TMR module (not applicable since Feb 2019)',
+  2:  'Insert total vehicle weight into [axleweight4] field',
+  3:  'Enable support for reading data from Himoinsa CEM7 power generator',
+  5:  'Insert value from impulse input into [range] field',
+  6:  'Insert 1-Wire thermometer temperature into [wiretemp6] instead of Jamming/CREG/CME/CMS value',
+  7:  'Enable support for external expander module',
+  9:  'Dedicated customer feature',
+  10: 'Dedicated customer feature',
+  13: 'Dedicated customer feature',
+  16: 'Enable support for Bluetooth module',
+  17: 'Always refresh data from CAN module',
+  18: 'Change voltage threshold for input state (state 0 below 2V, state 1 above 2V)',
+  19: 'Activate CAN bus data for FM15 CAN terminal',
+  20: 'Do not refresh GPS location when [drivercode] field is empty',
+  21: 'Use output 2 for Dallas immobilizer function',
+  22: 'Use output 3 for Dallas immobilizer function',
+  23: 'Enable sending commands through RS232TTL port using UARTDATA command',
+  25: 'Dedicated customer feature',
+  26: 'Send data frames through RS232TTL port (default baud rate 9600, changeable via ZVALUE:30)',
+  29: 'Dedicated customer feature',
+  30: 'Insert maximum registered [engine_speed] value between data frames',
+  31: 'Enable SENT-GEO function',
+  32: 'Dedicated customer feature'
+};
+
+var ZC3_DEFS = {
+  2:  'Insert maximum registered [vehicle_speed] value between data frames',
+  5:  'Enable RFID Rotation Direction Detector support',
+  7:  'Dedicated customer feature',
+  8:  'Dedicated customer feature',
+  10: 'ELA Innovations sensors support and fuel inlet protection ZWP-Q80 support (requires ZCONFIG2:16)',
+  12: 'Enable POWERTEMP module support for 1-Wire thermometer',
+  13: 'Enable chronological event transmission during sleep mode operation',
+  14: 'Treat family code 0x09 as a 1-Wire thermometer',
+  15: 'Dedicated customer feature',
+  16: 'Dedicated customer feature',
+  17: 'Enable POWERTEMP module logic for 1-Wire thermometer without physical module (PCB S8_v31, S10_v3+)',
+  18: 'Read RFID card or Dallas button code only once after ignition changes from 0 to 1',
+  19: 'Enable POWERTEMP module support for BTLE module',
+  20: 'Enable POWERTEMP module logic for BTLE without physical module (PCB S8_v31, S10_v3+)',
+  21: 'Dedicated customer feature',
+  22: 'Dedicated customer feature',
+  23: 'Enable locking for [total_distance] and [total_fuel] – values lower than last registered will not be visible',
+  24: 'Enable EXPANDER PRO MODULE support',
+  25: 'Turn off Bluetooth module after ignition changes from 1 to 0',
+  26: 'Dedicated customer feature',
+  27: 'Dedicated customer feature',
+  28: 'Dedicated customer feature',
+  29: 'Enable temperature and humidity sensor DTH22 support (GPR000059)',
+  30: 'Enable CIPIA-FS10 support',
+  31: 'Dedicated customer feature',
+  32: 'Convert [Engine_hours], [Engine_idle_time], [Drive_time_over_rpmlimit], [Drive_time_over_speedlimit], [Total_driving_time_with_accelerator_kick_down], [Total_driving_time_when_cruise_control_is_on] from minutes to seconds'
+};
+
+var ZC4_DEFS = {
+  1:  'Do not insert PTO state from CAN bus into [inputs2] field and do not generate event 127 frames',
+  2:  'Retrieve ignition signal for TMR module from violet wire/ignition/virtualacc instead of D8',
+  3:  'Enable Victron Energy BMV-700 battery monitor support',
+  4:  'Charge internal battery continuously regardless of ignition state',
+  5:  'TEX MID400 support (driver installed on a tanker)',
+  6:  'Active scanning mode by BLE module',
+  7:  'Substitute "battery instantaneous voltage" into [voltageanalog4] and "battery temperature" into [range]',
+  8:  'Dedicated customer feature',
+  9:  'Turn off internal TMR module',
+  10: 'Add cruise-control-off condition for calculating value in [coasting] field',
+  11: 'Dedicated customer feature',
+  12: 'Read total fuel consumption value from frame 0x79',
+  13: 'Dedicated customer feature',
+  14: 'Dedicated customer feature'
+};
+
+var ZV_DEFS = {
+  1:  'Multiplier for [total_fuel]',
+  3:  'Fuel tank capacity (for % ↔ litre conversion)',
+  8:  'Max [engine_speed] for SETECO function',
+  9:  'Multiplier for [total_distance]',
+  10: 'Max [accelerator] for [rapid_pedal_pressure] counter',
+  11: 'Max [vehicle_speed] for [drive_time_over_speedlimit] counter',
+  12: 'Max [engine_speed] for [drive_time_over_rpmlimit] counter',
+  13: 'Number of samples for filtering analog probe voltage',
+  14: 'Sampling time for filtering analog probe voltage',
+  15: 'Divider for pulse input',
+  20: 'Multiplier for [vehicle_speed]',
+  21: 'Limit speed – above: driving start event; below: driving end event',
+  22: 'Max accelerator pedal pressure – beyond this, event frame #98 is generated',
+  23: 'Time output remains active after ignition on (Dallas immobilizer)',
+  24: 'Dedicated customer feature',
+  25: 'Delay for stopping pulse count from pulse input (requires ZCONFIG:18 = 1)',
+  26: 'Time after which Dallas immobilizer auth expires after ignition off',
+  27: 'Time after which Bluetooth sensor disappears from data frame when out of range',
+  28: 'Dedicated customer feature',
+  29: 'Dedicated customer feature',
+  30: 'Baud rate setting (0 = 9600)',
+  31: 'Delay for SENT-GEO function'
+};
+
+var ZV2_DEFS = {
+  1:  'Time after which output 2 turns on – no GPS / no GSM / no TCP connection',
+  2:  'Time after which output 2 turns off – no GPS / no GSM / no TCP connection',
+  3:  'Select input to stop refreshing GPS position (Bit1=Input1+, Bit2=Input2+, Bit4=Input1-, Bit5=Input2-)',
+  4:  'Block indicators from [indicators_c] field – bits 0–31 per Indicators C description',
+  5:  'Delay to enter POWERMODE',
+  6:  'Limit for counting engine torque above set limit (stored in reserved field of F16/F17 frames)',
+  7:  'Frequency for generating events in case of towing (TOW command)',
+  8:  'Select inputs with state 0 after power reset (Bit0=Ignition+, Bit1=Input1+, Bit2=Input2+, Bit4=Input1-, Bit5=Input2-)',
+  9:  'Select inputs not refreshed when ignition turns off (Bit1=Input1+, Bit2=Input2+, Bit4=Input1-, Bit5=Input2-)',
+  10: 'Reserved',
+  11: 'Reserved',
+  12: 'BLEVOLTAGE frame sending frequency (BLE Eddystone UID/TLM)',
+  13: 'Choose inputs to start ImmoDallas (ZCONFIG:5) – (Bit1=Input1+, Bit2=Input2+, Bit4=Input1-, Bit5=Input2-)',
+  14: 'GPS module working mode (Bit0=GPS, Bit1=GLONASS, Bit2=GALILEO, Bit3=GALILEO FULL, Bit4=BEIDOU) – 0 = GPS+GLONASS default',
+  15: 'Described in ETOLL documentation',
+  16: 'Battery level for electric cars in Wh (e.g. 55000 = 55 kWh) – enables kWh counting in [total_fuel]',
+  17: 'Set bit 3 in [inputs2] to 1 when engine speed exceeds this value',
+  18: 'Dedicated customer feature',
+  19: 'Subtract defined value from [vehicle_speed]',
+  20: 'Delay to enter SLEEPMODE',
+  21: 'Do not count [total_idle_fuel] / [engine_idle_time] when PTO engaged (1=CAN, 2=JP1-5, 3=JP2-8, 5=JP1-4, 6=JP2-1)',
+  22: 'Lower RPM threshold for counting [total_driving_time_in_effective_range]',
+  23: 'Dedicated customer feature'
+};
+
 var zcBits = [];
+var zcMode = 'config'; // 'config' | 'value' | 'value2'
 var zcCurFilter = 'all';
 
 function zcParse() {
@@ -911,25 +1035,38 @@ function zcParse() {
   var out = document.getElementById('zc-out');
 
   if (!raw) {
-    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG string above and press Decode.</div>';
-    document.getElementById('zc-summary').style.display = 'none';
+    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE or $QR:ZVALUE2 string above and press Decode.</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
     return;
   }
 
-  var m = raw.match(/ZCONFIG\s*=\s*([\d,\s]+)/i);
+  var isValue2  = /ZVALUE2/i.test(raw);
+  var isValue   = !isValue2 && /ZVALUE/i.test(raw);
+  var isConfig4 = /ZCONFIG4/i.test(raw);
+  var isConfig3 = !isConfig4 && /ZCONFIG3/i.test(raw);
+  var isConfig2 = !isConfig4 && !isConfig3 && /ZCONFIG2/i.test(raw);
+  zcMode = isValue2 ? 'value2' : (isValue ? 'value' : (isConfig4 ? 'config4' : (isConfig3 ? 'config3' : (isConfig2 ? 'config2' : 'config'))));
+
+  var m = raw.match(/Z(?:VALUE2|VALUE|CONFIG4|CONFIG3|CONFIG2|CONFIG)\s*=\s*([\d,\s]+)/i);
   var seq = m ? m[1] : raw;
   zcBits = seq.split(',').map(function(s) { return parseInt(s.trim(), 10); }).filter(function(b) { return !isNaN(b); });
 
   if (!zcBits.length) {
-    out.innerHTML = '<div class="zc-error">No valid ZCONFIG string found. Expected format: $QR:ZCONFIG=0,0,1,0,…</div>';
-    document.getElementById('zc-summary').style.display = 'none';
+    out.innerHTML = '<div class="zc-error">No valid string found. Expected: $QR:ZCONFIG=… / $QR:ZCONFIG2=… / $QR:ZCONFIG3=… / $QR:ZCONFIG4=… / $QR:ZVALUE=… / $QR:ZVALUE2=…</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
     return;
   }
 
-  document.getElementById('zc-filter-row').style.display = 'flex';
+  // Update filter labels based on mode
+  if (zcMode === 'value' || zcMode === 'value2') {
+    document.getElementById('zc-f-on-label').textContent  = 'Non-zero only';
+    document.getElementById('zc-f-off-label').textContent = 'Zero only';
+  } else {
+    document.getElementById('zc-f-on-label').textContent  = 'Active only';
+    document.getElementById('zc-f-off-label').textContent = 'Inactive only';
+  }
 
+  document.getElementById('zc-filter-row').style.display = 'flex';
   zcCurFilter = 'all';
   ['all','on','off'].forEach(function(x) {
     document.getElementById('zc-f-' + x).classList.toggle('active', x === 'all');
@@ -946,26 +1083,46 @@ function zcFilter(f) {
 }
 
 function zcRender() {
+  var defs = zcMode === 'value2' ? ZV2_DEFS : (zcMode === 'value' ? ZV_DEFS : (zcMode === 'config4' ? ZC4_DEFS : (zcMode === 'config3' ? ZC3_DEFS : (zcMode === 'config2' ? ZC2_DEFS : ZC_DEFS))));
   var html = '<div class="zc-grid">';
   var shown = 0;
+
   for (var i = 0; i < zcBits.length; i++) {
-    var bitNum = i + 1;
-    var val    = zcBits[i];
-    var isOn   = val === 1;
+    var num = i + 1;
+    var val = zcBits[i];
+    var isOn = (zcMode === 'value' || zcMode === 'value2') ? (val !== 0) : (val === 1);
+
     if (zcCurFilter === 'on'  && !isOn) continue;
     if (zcCurFilter === 'off' &&  isOn) continue;
     shown++;
-    var desc = ZC_DEFS[bitNum];
-    html += '<div class="zc-bit' + (isOn ? ' is-on' : '') + '">' +
-      '<span class="zc-bit-num' + (isOn ? ' on' : '') + '">' + bitNum + '</span>' +
-      '<span class="zc-pill ' + (isOn ? 'on' : 'off') + '">' + (isOn ? '1 – ON' : '0 – OFF') + '</span>' +
-      '<span class="zc-desc' + (isOn ? ' on' : '') + '">' +
-        (desc ? desc : '<span class="zc-no-def">Not defined</span>') +
-      '</span>' +
-    '</div>';
+
+    var desc = defs[num];
+
+    if (zcMode === 'value' || zcMode === 'value2') {
+      // Value mode: show the actual number in the pill
+      var pillCls  = isOn ? 'on' : 'off';
+      var pillText = val.toString();
+      html += '<div class="zc-bit' + (isOn ? ' is-on' : '') + '">' +
+        '<span class="zc-bit-num' + (isOn ? ' on' : '') + '">' + num + '</span>' +
+        '<span class="zc-pill ' + pillCls + '" style="min-width:52px;text-align:center">' + pillText + '</span>' +
+        '<span class="zc-desc' + (isOn ? ' on' : '') + '">' +
+          (desc ? desc : '<span class="zc-no-def">Not defined</span>') +
+        '</span>' +
+      '</div>';
+    } else {
+      // Config mode: ON / OFF
+      html += '<div class="zc-bit' + (isOn ? ' is-on' : '') + '">' +
+        '<span class="zc-bit-num' + (isOn ? ' on' : '') + '">' + num + '</span>' +
+        '<span class="zc-pill ' + (isOn ? 'on' : 'off') + '">' + (isOn ? '1 – ON' : '0 – OFF') + '</span>' +
+        '<span class="zc-desc' + (isOn ? ' on' : '') + '">' +
+          (desc ? desc : '<span class="zc-no-def">Not defined</span>') +
+        '</span>' +
+      '</div>';
+    }
   }
+
   html += '</div>';
-  if (!shown) html = '<div class="zc-empty">No bits match the current filter.</div>';
+  if (!shown) html = '<div class="zc-empty">No entries match the current filter.</div>';
   document.getElementById('zc-out').innerHTML = html;
 }
 
