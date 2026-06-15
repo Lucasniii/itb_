@@ -292,8 +292,67 @@
     border-radius: 2px; font-size: 0.72rem; color: var(--orange);
   }
 
+  /* ── Z-CONFIG ── */
+  .zc-wrap { width: 100%; }
+  .zc-input-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; }
+  .zc-textarea {
+    flex: 1; min-width: 220px;
+    font-family: 'DM Mono', 'Courier New', monospace; font-size: 0.78rem;
+    padding: 12px 16px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 2px;
+    color: var(--text); resize: vertical; min-height: 70px;
+    transition: border-color 0.15s;
+  }
+  .zc-textarea:focus { outline: none; border-color: #444; }
+  .zc-summary { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .zc-stat {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 2px; padding: 12px 18px; min-width: 100px;
+  }
+  .zc-stat-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
+  .zc-stat-val { font-family: 'Syne', Arial, sans-serif; font-size: 1.6rem; font-weight: 800; }
+  .zc-stat-val.on  { color: var(--green); }
+  .zc-stat-val.off { color: var(--muted); }
+  .zc-stat-val.acc { color: var(--accent); }
+
+  .zc-filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .zc-fbtn {
+    padding: 7px 16px; background: transparent;
+    color: var(--muted); font-family: 'DM Mono', 'Courier New', monospace;
+    font-size: 0.72rem; border: 1px solid var(--border);
+    border-radius: 2px; cursor: pointer; transition: all 0.15s;
+  }
+  .zc-fbtn:hover { color: var(--text); border-color: #444; }
+  .zc-fbtn.active { color: var(--accent); border-color: var(--accent); background: rgba(232,255,71,0.06); }
+
+  .zc-grid { display: flex; flex-direction: column; gap: 8px; }
+  .zc-bit {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 11px 14px; border-radius: 2px;
+    border: 1px solid var(--border); background: var(--surface);
+    transition: border-color 0.15s;
+  }
+  .zc-bit.is-on { border-color: rgba(68,255,136,0.35); background: rgba(68,255,136,0.04); }
+  .zc-bit-num {
+    font-size: 0.72rem; color: var(--muted); min-width: 26px;
+    padding-top: 2px; font-weight: 500;
+  }
+  .zc-bit-num.on { color: var(--accent); }
+  .zc-pill {
+    font-size: 0.62rem; font-weight: 700; padding: 2px 10px;
+    border-radius: 2px; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.06em;
+  }
+  .zc-pill.on  { background: rgba(68,255,136,0.15); color: var(--green); border: 1px solid rgba(68,255,136,0.3); }
+  .zc-pill.off { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid var(--border); }
+  .zc-desc { font-size: 0.71rem; color: var(--muted); line-height: 1.55; flex: 1; }
+  .zc-desc.on { color: var(--text); }
+  .zc-no-def { font-style: italic; }
+  .zc-empty { font-size: 0.78rem; color: var(--muted); text-align: center; padding: 32px; border: 1px solid var(--border); border-radius: 2px; }
+  .zc-error { color: var(--red); font-size: 0.78rem; padding: 14px 16px; border: 1px solid rgba(255,68,68,0.3); border-radius: 2px; background: rgba(255,68,68,0.06); }
+
   @media (max-width: 600px) {
     .summary-grid { grid-template-columns: repeat(2,1fr); }
+    .zc-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -305,6 +364,7 @@
 
 <nav class="tabs">
   <button class="tab active" data-view="pruef">KM-Pruefung</button>
+  <button class="tab" data-view="zconfig">Decoder</button>
   <button class="tab" data-view="merge">PTO-Erkennung</button>
 </nav>
 
@@ -342,16 +402,9 @@
       <div class="stat-box"><div class="stat-label">Fahrzeuge mit eingefr. KM</div><div class="stat-value orange" id="stat-frozen">—</div></div>
     </div>
 
-    <!-- Legende -->
     <div class="legend">
-      <div class="legend-item">
-        <span class="tag-x">X</span>
-        <span>KM-Wert falsch (Ist ≠ Soll)</span>
-      </div>
-      <div class="legend-item">
-        <span class="tag-frozen">≡</span>
-        <span>KM-Stand unveraendert seit 20+ Fahrten</span>
-      </div>
+      <div class="legend-item"><span class="tag-x">X</span><span>KM-Wert falsch (Ist ≠ Soll)</span></div>
+      <div class="legend-item"><span class="tag-frozen">≡</span><span>KM-Stand unveraendert seit 20+ Fahrten</span></div>
     </div>
 
     <div id="kz-chips-wrap" class="kz-chips"></div>
@@ -365,7 +418,31 @@
 </section>
 
 <!-- ════════════════════════════════════════════════════════════════
-     VIEW 2 – PTO-ERKENNUNG
+     VIEW 2 – Z-CONFIG
+     ════════════════════════════════════════════════════════════════ -->
+<section class="view" id="view-zconfig">
+  <div class="zc-wrap">
+
+    <div class="zc-input-row">
+      <textarea class="zc-textarea" id="zc-input" rows="3"
+        placeholder="Paste $QR:ZCONFIG string here, e.g. $QR:ZCONFIG=0,0,0,1,0,0,0,0,0,1,0,1,…"></textarea>
+      <button class="btn-run" style="flex-shrink:0" onclick="zcParse()">▶ Decode</button>
+    </div>
+
+
+
+    <div id="zc-filter-row" class="zc-filter-row" style="display:none">
+      <button class="zc-fbtn active" id="zc-f-all" onclick="zcFilter('all')">All bits</button>
+      <button class="zc-fbtn" id="zc-f-on"  onclick="zcFilter('on')">Active only</button>
+      <button class="zc-fbtn" id="zc-f-off" onclick="zcFilter('off')">Inactive only</button>
+    </div>
+
+    <div id="zc-out"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     VIEW 3 – PTO-ERKENNUNG
      ════════════════════════════════════════════════════════════════ -->
 <section class="view" id="view-merge">
 
@@ -397,7 +474,7 @@
 /* ════════════════════════════════════════════════════════════════
    CONSTANTS
    ════════════════════════════════════════════════════════════════ */
-var FROZEN_THRESHOLD = 20; // Anzahl Fahrten mit gleichem KM-Stand → Warnung
+var FROZEN_THRESHOLD = 20;
 
 /* ════════════════════════════════════════════════════════════════
    TAB SWITCHING
@@ -416,8 +493,8 @@ document.querySelectorAll('.tab').forEach(function(tab) {
    VIEW 1 – KM-PRUEFUNG
    ════════════════════════════════════════════════════════════════ */
 var currentFile  = null;
-var errorRowsRef = [];   // Typ-X Fehler (KM falsch)
-var frozenRowsRef = [];  // Typ-≡ Fehler (KM eingefroren)
+var errorRowsRef = [];
+var frozenRowsRef = [];
 var rawFileRef   = null;
 
 var pruefInput = document.getElementById('pruef-file-input');
@@ -449,7 +526,6 @@ pruefRun.addEventListener('click', function() {
   document.getElementById('pruef-loading').classList.add('visible');
   hidePruefResults();
   setStatus('pruef-status', '', '');
-
   var reader = new FileReader();
   reader.onload = function(e) {
     try {
@@ -503,11 +579,8 @@ function analyze(ws) {
   var currentGroup = null;
   var prevKmStand = null;
   var currentDatum = '—';
-
-  // Pro Gruppe: laufender Zähler für gleichbleibende KM-Stände
-  // und Puffer der letzten Fahrten (für Schwellenerkennung)
   var sameKmCount = 0;
-  var frozenAlreadyReported = false; // verhindert Doppelmeldung bei fortlaufend gleichen
+  var frozenAlreadyReported = false;
 
   for (var r = 0; r <= maxRow; r++) {
     var foundKZ = null;
@@ -549,12 +622,10 @@ function analyze(ws) {
         start: formatTime(start) || (start ? String(start) : ''),
         stop:  formatTime(stop)  || (stop  ? String(stop)  : ''),
         km: kmVal, kmStand: kmStand,
-        error: false, expectedKm: null,
-        frozen: false
+        error: false, expectedKm: null, frozen: false
       };
 
       if (prevKmStand !== null) {
-        // ── Check 1: KM-Wert falsch ─────────────────────────────
         var diff = Math.round((kmStand - prevKmStand) * 10) / 10;
         var kmValRounded = Math.round(kmVal * 10) / 10;
         if (diff > 0 && Math.round(Math.abs(kmValRounded - diff) * 10) / 10 > 0.1) {
@@ -563,25 +634,19 @@ function analyze(ws) {
           currentGroup.errorRows.push(row);
           errorRowsRef.push(row);
         }
-
-        // ── Check 2: KM-Stand eingefroren ───────────────────────
         if (kmStand === prevKmStand) {
           sameKmCount++;
-          // Genau beim Erreichen der Schwelle: diese Zeile markieren
           if (sameKmCount === FROZEN_THRESHOLD && !frozenAlreadyReported) {
             row.frozen = true;
             frozenAlreadyReported = true;
             currentGroup.frozenRows.push(row);
             frozenRowsRef.push(row);
-          }
-          // Alle weiteren Zeilen nach Schwelle auch markieren
-          else if (sameKmCount > FROZEN_THRESHOLD) {
+          } else if (sameKmCount > FROZEN_THRESHOLD) {
             row.frozen = true;
             currentGroup.frozenRows.push(row);
             frozenRowsRef.push(row);
           }
         } else {
-          // KM-Stand hat sich geändert → Zähler zurücksetzen
           sameKmCount = 0;
           frozenAlreadyReported = false;
         }
@@ -598,12 +663,11 @@ function analyze(ws) {
 }
 
 function showResults(groups) {
-  var totalTrips = 0, totalErrors = 0, totalFrozen = 0, affectedKZs = 0;
+  var totalTrips = 0, totalErrors = 0, totalFrozen = 0;
   groups.forEach(function(g) {
     totalTrips  += g.rows.length;
     totalErrors += g.errorRows.length;
     if (g.frozenRows.length > 0) totalFrozen++;
-    if (g.errorRows.length > 0 || g.frozenRows.length > 0) affectedKZs++;
   });
 
   document.getElementById('stat-vehicles').textContent = groups.length;
@@ -611,7 +675,6 @@ function showResults(groups) {
   document.getElementById('stat-errors').textContent   = totalErrors;
   document.getElementById('stat-frozen').textContent   = totalFrozen;
 
-  // Badge
   var hasAnyIssue = totalErrors > 0 || totalFrozen > 0;
   var badgeParts = [];
   if (totalErrors > 0) badgeParts.push('<span class="badge badge-red">⚠ ' + totalErrors + ' KM-Fehler</span>');
@@ -620,16 +683,14 @@ function showResults(groups) {
     ? badgeParts.join(' ')
     : '<span class="badge badge-green">✓ Alle Zeilen korrekt</span>';
 
-  // Chips
   var chipsHtml = '';
   groups.forEach(function(g) {
-    var hasErr    = g.errorRows.length > 0;
-    var hasFrozen = g.frozenRows.length > 0;
+    var hasErr = g.errorRows.length > 0, hasFrozen = g.frozenRows.length > 0;
     var cls, icon;
-    if (hasErr && hasFrozen) { cls = 'mixed';  icon = '⚠ '; }
-    else if (hasErr)         { cls = 'bad';    icon = '⚠ '; }
-    else if (hasFrozen)      { cls = 'frozen'; icon = '≡ '; }
-    else                     { cls = 'good';   icon = '✓ '; }
+    if (hasErr && hasFrozen) { cls = 'mixed'; icon = '⚠ '; }
+    else if (hasErr)         { cls = 'bad';   icon = '⚠ '; }
+    else if (hasFrozen)      { cls = 'frozen';icon = '≡ '; }
+    else                     { cls = 'good';  icon = '✓ '; }
     chipsHtml += '<div class="kz-chip ' + cls + '">' + icon + g.kz;
     var counts = [];
     if (g.errorRows.length  > 0) counts.push(g.errorRows.length + ' X');
@@ -649,20 +710,14 @@ function showResults(groups) {
   } else {
     var html = '';
     groups.forEach(function(g) {
-      var hasErr    = g.errorRows.length > 0;
-      var hasFrozen = g.frozenRows.length > 0;
-      var hasAny = hasErr || hasFrozen;
-
+      var hasErr = g.errorRows.length > 0, hasFrozen = g.frozenRows.length > 0, hasAny = hasErr || hasFrozen;
       var headerCls = 'kz-header';
       if (hasErr && hasFrozen) headerCls += ' mixed-kz';
       else if (hasErr)         headerCls += ' error-kz';
       else if (hasFrozen)      headerCls += ' frozen-kz';
-
       var icon = hasErr ? '⚠' : (hasFrozen ? '≡' : '✓');
-
       html += '<div class="kz-section"><div class="' + headerCls + '" onclick="toggleSection(this)">';
       html += '<span>' + icon + '</span><span class="kz-name">' + g.kz + '</span>';
-
       if (hasAny) {
         var metaParts = [];
         if (g.errorRows.length  > 0) metaParts.push(g.errorRows.length  + ' KM-Fehler');
@@ -672,25 +727,18 @@ function showResults(groups) {
         html += '<span class="kz-meta" style="color:var(--green)">' + g.rows.length + ' Fahrten – OK</span>';
       }
       html += '<span class="kz-toggle">▼</span></div>';
-
       var bodyCls = hasAny ? 'kz-body' : 'kz-body collapsed';
       html += '<div class="' + bodyCls + '">';
-
       if (hasAny) {
-        // Frozen-Hinweis wenn nötig
         if (hasFrozen) {
           html += '<div class="frozen-info">≡ KM-Stand blieb bei ' + g.frozenRows.length;
           html += (g.frozenRows.length === 1 ? ' Fahrt' : ' Fahrten');
           html += ' unveraendert (Schwelle: ' + FROZEN_THRESHOLD + ' Fahrten)</div>';
         }
-
-        // Alle Fehlerzeilen zusammen in einer Tabelle
         var allErrorRows = [];
         g.errorRows.forEach(function(r) { allErrorRows.push({ row: r, type: 'x' }); });
         g.frozenRows.forEach(function(r) { allErrorRows.push({ row: r, type: 'frozen' }); });
-        // Sortieren nach Excel-Zeile
         allErrorRows.sort(function(a, b) { return a.row.excelRow - b.row.excelRow; });
-
         html += '<div class="error-table-wrap"><table>';
         html += '<thead><tr><th>Zeile</th><th>Kennzeichen</th><th>Datum</th><th>Zeit</th><th>KM-Stand</th><th>KM ist</th><th>KM soll</th><th>Status</th></tr></thead><tbody>';
         allErrorRows.forEach(function(entry) {
@@ -755,20 +803,14 @@ function downloadMarked() {
     ]).then(function(results) {
       var sheetXml = results[0], stylesXml = results[1];
       var styleIdxRed = 0, styleIdxOrange = 0;
-
       if (stylesXml) {
-        // ── Rote Füllung (X-Fehler) ──────────────────────
         var fillRed    = '<fill><patternFill patternType="solid"><fgColor rgb="FFFF0000"/><bgColor indexed="64"/></patternFill></fill>';
-        // ── Orange Füllung (Frozen) ──────────────────────
         var fillOrange = '<fill><patternFill patternType="solid"><fgColor rgb="FFFF8800"/><bgColor indexed="64"/></patternFill></fill>';
-
         var fillsMatch = stylesXml.match(/<fills count="(\d+)">/);
         if (fillsMatch) {
           stylesXml = stylesXml.replace(/<\/fills>/, fillRed + fillOrange + '</fills>');
           stylesXml = stylesXml.replace(/<fills count="\d+">/, '<fills count="' + (parseInt(fillsMatch[1])+2) + '">');
         }
-
-        // ── Fetter weißer Font ───────────────────────────
         var fontXml = '<font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Calibri"/></font>';
         var fontsMatch = stylesXml.match(/<fonts count="(\d+)">/);
         var fontIdx = 0;
@@ -777,16 +819,11 @@ function downloadMarked() {
           stylesXml = stylesXml.replace(/<\/fonts>/, fontXml + '</fonts>');
           stylesXml = stylesXml.replace(/<fonts count="\d+">/, '<fonts count="' + (fontIdx+1) + '">');
         }
-
         var allFills = stylesXml.match(/<fill>/g);
-        var baseFillIdx = allFills ? allFills.length - 2 : 1; // -2 weil wir zwei hinzugefügt haben
+        var baseFillIdx = allFills ? allFills.length - 2 : 1;
         var orangeFillIdx = baseFillIdx + 1;
-
-        // Style für rote Zellen (X)
-        var xfRed = '<xf numFmtId="0" fontId="' + fontIdx + '" fillId="' + baseFillIdx + '" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center" vertical="center"/></xf>';
-        // Style für orange Zellen (≡)
+        var xfRed    = '<xf numFmtId="0" fontId="' + fontIdx + '" fillId="' + baseFillIdx   + '" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center" vertical="center"/></xf>';
         var xfOrange = '<xf numFmtId="0" fontId="' + fontIdx + '" fillId="' + orangeFillIdx + '" borderId="0" xfId="0" applyFont="1" applyFill="1"><alignment horizontal="center" vertical="center"/></xf>';
-
         var cellXfsMatch = stylesXml.match(/<cellXfs count="(\d+)">/);
         if (cellXfsMatch) {
           styleIdxRed    = parseInt(cellXfsMatch[1]);
@@ -796,34 +833,25 @@ function downloadMarked() {
         }
         zip.file(stylesKey, stylesXml);
       }
-
       var dimMatch = sheetXml.match(/<dimension ref="[^:]+:([A-Z]+)(\d+)"/);
       var lastColLetter = dimMatch ? dimMatch[1] : 'Y';
       var lastColIdx = 0;
       for (var ci = 0; ci < lastColLetter.length; ci++) lastColIdx = lastColIdx * 26 + lastColLetter.charCodeAt(ci) - 64;
       var xColLetter = colLetter(lastColIdx);
-
-      // Fehlertypen pro Zeile sammeln (X hat Vorrang)
       var rowMarkMap = {};
       errorRowsRef.forEach(function(er) { rowMarkMap[er.excelRow] = 'x'; });
-      frozenRowsRef.forEach(function(fr) {
-        if (!rowMarkMap[fr.excelRow]) rowMarkMap[fr.excelRow] = 'frozen';
-      });
-
+      frozenRowsRef.forEach(function(fr) { if (!rowMarkMap[fr.excelRow]) rowMarkMap[fr.excelRow] = 'frozen'; });
       sheetXml = sheetXml.replace(/<row r="(\d+)"([^>]*)>([\s\S]*?)<\/row>/g, function(match, rowNum, attrs, inner) {
         var rn = parseInt(rowNum);
         var markType = rowMarkMap[rn];
         if (!markType) return match;
-
         var cellRef = xColLetter + rowNum;
         if (inner.indexOf('r="' + cellRef + '"') !== -1) return match;
-
-        var label     = markType === 'x' ? 'X' : '\u2261'; // ≡
-        var styleIdx  = markType === 'x' ? styleIdxRed : styleIdxOrange;
-        var newCell   = '<c r="' + cellRef + '" t="inlineStr" s="' + styleIdx + '"><is><t>' + label + '</t></is></c>';
+        var label    = markType === 'x' ? 'X' : '\u2261';
+        var styleIdx = markType === 'x' ? styleIdxRed : styleIdxOrange;
+        var newCell  = '<c r="' + cellRef + '" t="inlineStr" s="' + styleIdx + '"><is><t>' + label + '</t></is></c>';
         return '<row r="' + rowNum + '"' + attrs + '>' + inner + newCell + '</row>';
       });
-
       sheetXml = sheetXml.replace(/<dimension ref="([^:]+):([A-Z]+)(\d+)"/, function(m, start, col, row) {
         return '<dimension ref="' + start + ':' + xColLetter + row + '"';
       });
@@ -853,7 +881,96 @@ function setStatus(id, msg, type) {
 }
 
 /* ════════════════════════════════════════════════════════════════
-   VIEW 2 – PTO-ERKENNUNG
+   VIEW 2 – Z-CONFIG DECODER
+   ════════════════════════════════════════════════════════════════ */
+var ZC_DEFS = {
+  2:  'Replace value in [engine_temp] with value from 1-Wire temperature sensor',
+  3:  'Replace value in [engine_speed] with value calculated from impulse input',
+  4:  'Enable CAN units unification',
+  5:  'Use output 1 for Dallas immobilizer function',
+  7:  'Convert value in [total_distance] to miles',
+  8:  'Enable checking of applied Dallas chip against list stored in terminal memory',
+  10: 'Enable support for 3D sensor',
+  12: 'Enable maintaining values in [total_distance], [total_fuel] and [fuel_level]',
+  16: 'Dedicated customer feature',
+  17: 'Dedicated customer feature',
+  18: 'Impulse input mode (0 = count impulses from engine, 1 = count from flow meter)',
+  20: 'Enable generation of DRVID frame on tachograph status change or driver card insertion/removal',
+  22: 'Replace value in [total_fuel] with value calculated from impulse input',
+  23: 'Enable reading vehicle speed from tachograph data',
+  27: 'Dedicated customer feature',
+  28: 'Enable activating output for Dallas immobilizer immediately after ignition off',
+  29: 'Replace values in [VoltageAnalog1] and [VoltageAnalog2] with voltages from input 1+ and 2+'
+};
+
+var zcBits = [];
+var zcCurFilter = 'all';
+
+function zcParse() {
+  var raw = document.getElementById('zc-input').value.trim();
+  var out = document.getElementById('zc-out');
+
+  if (!raw) {
+    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG string above and press Decode.</div>';
+    document.getElementById('zc-summary').style.display = 'none';
+    document.getElementById('zc-filter-row').style.display = 'none';
+    return;
+  }
+
+  var m = raw.match(/ZCONFIG\s*=\s*([\d,\s]+)/i);
+  var seq = m ? m[1] : raw;
+  zcBits = seq.split(',').map(function(s) { return parseInt(s.trim(), 10); }).filter(function(b) { return !isNaN(b); });
+
+  if (!zcBits.length) {
+    out.innerHTML = '<div class="zc-error">No valid ZCONFIG string found. Expected format: $QR:ZCONFIG=0,0,1,0,…</div>';
+    document.getElementById('zc-summary').style.display = 'none';
+    document.getElementById('zc-filter-row').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('zc-filter-row').style.display = 'flex';
+
+  zcCurFilter = 'all';
+  ['all','on','off'].forEach(function(x) {
+    document.getElementById('zc-f-' + x).classList.toggle('active', x === 'all');
+  });
+  zcRender();
+}
+
+function zcFilter(f) {
+  zcCurFilter = f;
+  ['all','on','off'].forEach(function(x) {
+    document.getElementById('zc-f-' + x).classList.toggle('active', x === f);
+  });
+  zcRender();
+}
+
+function zcRender() {
+  var html = '<div class="zc-grid">';
+  var shown = 0;
+  for (var i = 0; i < zcBits.length; i++) {
+    var bitNum = i + 1;
+    var val    = zcBits[i];
+    var isOn   = val === 1;
+    if (zcCurFilter === 'on'  && !isOn) continue;
+    if (zcCurFilter === 'off' &&  isOn) continue;
+    shown++;
+    var desc = ZC_DEFS[bitNum];
+    html += '<div class="zc-bit' + (isOn ? ' is-on' : '') + '">' +
+      '<span class="zc-bit-num' + (isOn ? ' on' : '') + '">' + bitNum + '</span>' +
+      '<span class="zc-pill ' + (isOn ? 'on' : 'off') + '">' + (isOn ? '1 – ON' : '0 – OFF') + '</span>' +
+      '<span class="zc-desc' + (isOn ? ' on' : '') + '">' +
+        (desc ? desc : '<span class="zc-no-def">Not defined</span>') +
+      '</span>' +
+    '</div>';
+  }
+  html += '</div>';
+  if (!shown) html = '<div class="zc-empty">No bits match the current filter.</div>';
+  document.getElementById('zc-out').innerHTML = html;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   VIEW 3 – PTO-ERKENNUNG
    ════════════════════════════════════════════════════════════════ */
 var mergeFiles = [];
 var mergeAnalysisCache = new Map();
@@ -891,9 +1008,8 @@ function renderMergeList() {
     html += '<div class="file-item">';
     html += '<span class="idx">' + (i+1) + '.</span>';
     html += '<span class="name">' + f.name + '</span>';
-    html += '<span class="actions">';
-    html += '<button class="icon-btn del" onclick="removeMerge(' + i + ')" title="entfernen">✕</button>';
-    html += '</span></div>';
+    html += '<span class="actions"><button class="icon-btn del" onclick="removeMerge(' + i + ')" title="entfernen">✕</button></span>';
+    html += '</div>';
   });
   list.innerHTML = html;
 }
@@ -913,15 +1029,10 @@ function analyzeFileForInput(file) {
     var ws = wb.Sheets[wb.SheetNames[0]];
     if (!ws || !ws['!ref']) return { kzMap: {} };
     var range = XLSX.utils.decode_range(ws['!ref']);
-    var maxRow = range.e.r;
-    var maxCol = Math.min(range.e.c, 20);
-    var currentKZ = null;
-    var kzMap = {};
-
+    var maxRow = range.e.r, maxCol = Math.min(range.e.c, 20);
+    var currentKZ = null, kzMap = {};
     for (var r = 0; r <= maxRow; r++) {
-      var rowKZ = null;
-      var rowHasInput = false;
-      var rowHasPTO = false;
+      var rowKZ = null, rowHasInput = false, rowHasPTO = false;
       for (var c = 0; c <= maxCol; c++) {
         var v = cellVal(ws, r, c);
         if (typeof v !== 'string') continue;
@@ -937,14 +1048,8 @@ function analyzeFileForInput(file) {
         currentKZ = rowKZ;
         if (!kzMap[currentKZ]) kzMap[currentKZ] = { hasInput: false, hasPTO: false, count: 0, ptoCount: 0 };
       }
-      if (rowHasInput && currentKZ) {
-        kzMap[currentKZ].hasInput = true;
-        kzMap[currentKZ].count++;
-      }
-      if (rowHasPTO && currentKZ) {
-        kzMap[currentKZ].hasPTO = true;
-        kzMap[currentKZ].ptoCount++;
-      }
+      if (rowHasInput && currentKZ) { kzMap[currentKZ].hasInput = true; kzMap[currentKZ].count++; }
+      if (rowHasPTO  && currentKZ) { kzMap[currentKZ].hasPTO  = true; kzMap[currentKZ].ptoCount++; }
     }
     var result = { kzMap: kzMap };
     mergeAnalysisCache.set(file, result);
@@ -978,10 +1083,7 @@ function renderKzOverview(combined) {
   var box = document.getElementById('merge-kz-overview');
   var chipsEl = document.getElementById('merge-kz-chips');
   var countEl = document.getElementById('merge-kz-count');
-  if (!combined || Object.keys(combined).length === 0) {
-    box.style.display = 'none';
-    return;
-  }
+  if (!combined || Object.keys(combined).length === 0) { box.style.display = 'none'; return; }
   box.style.display = 'block';
   var kzList = Object.keys(combined).sort();
   var active = kzList.filter(function(k) { return combined[k].hasInput; });
