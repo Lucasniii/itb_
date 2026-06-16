@@ -364,6 +364,12 @@
   .zc-empty { font-size: 0.78rem; color: var(--muted); text-align: center; padding: 32px; border: 1px solid var(--border); border-radius: 2px; }
   .zc-error { color: var(--red); font-size: 0.78rem; padding: 14px 16px; border: 1px solid rgba(255,68,68,0.3); border-radius: 2px; background: rgba(255,68,68,0.06); }
 
+  .zc-ctmr {
+    font-size: 0.82rem; line-height: 1.9; color: var(--text);
+    padding: 18px 20px; background: var(--surface);
+    border: 1px solid var(--border); border-radius: 2px;
+  }
+
   /* ── DATACONFIG kompaktes Raster ── */
   .zc-dgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; }
   .zc-dcell {
@@ -455,7 +461,7 @@
 
     <div class="zc-input-row">
       <textarea class="zc-textarea" id="zc-input" rows="3"
-        placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2 or $QR:DATACONFIG string here…"></textarea>
+        placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG or $QR:CHECKTMR string here…"></textarea>
       <button class="btn-run" style="flex-shrink:0" onclick="zcParse()">▶ Decode</button>
     </div>
 
@@ -1131,9 +1137,18 @@ function zcParse() {
   var out = document.getElementById('zc-out');
 
   if (!raw) {
-    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2 or $QR:DATACONFIG string above and press Decode.</div>';
+    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG or $QR:CHECKTMR string above and press Decode.</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
     document.getElementById('zc-dcview-row').style.display = 'none';
+    return;
+  }
+
+  var isCheckTmr = /CHECKTMR/i.test(raw);
+  if (isCheckTmr) {
+    zcMode = 'checktmr';
+    document.getElementById('zc-filter-row').style.display = 'none';
+    document.getElementById('zc-dcview-row').style.display = 'none';
+    out.innerHTML = zcParseCheckTmr(raw);
     return;
   }
 
@@ -1311,6 +1326,149 @@ function zcRenderDataGrid() {
   html += '</div>';
   if (!shown) html = '<div class="zc-empty">No entries match the current filter.</div>';
   document.getElementById('zc-out').innerHTML = html;
+}
+
+/* ── CHECKTMR Decoder ──
+   Portierung des CHECKTMR/parseQR-Decoders. Liefert eine farbige
+   Ergebnisliste (gruen = ok, rot = Problem). Ohne Kollisionsframe-Zweitfeld. */
+function zcParseCheckTmr(input) {
+  var G = function(t) { return '<span style="color:var(--green);font-weight:700">' + t + '</span>'; };
+  var R = function(t) { return '<span style="color:var(--red);font-weight:700">' + t + '</span>'; };
+
+  var parts = input.split('=');
+  if (parts.length !== 2) {
+    return '<div class="zc-error">Error: Invalid QR data format! Erwartet: $QR:CHECKTMR=…</div>';
+  }
+  var p = parts[1].trim().toUpperCase().replace(/\s+/g, '');
+
+  // Firmware
+  var firstTachover  = parseInt(p.substring(0, 1), 16);
+  var secondTachover = parseInt(p.substring(1, 2), 16);
+  var thirdTachover  = parseInt(p.substring(2, 4), 16);
+  var fourthTachover = parseInt(p.substring(4, 6), 16);
+
+  // Hardware
+  var hardwareVersion = p.substring(6, 8).substring(0, 1) + '.' + p.substring(6, 8).substring(1, 2);
+
+  // Seriennummer (Little-Endian)
+  var serialNumber = parseInt((p.substring(14, 16) + p.substring(12, 14) + p.substring(10, 12) + p.substring(8, 10)), 16);
+
+  // INF, INF2
+  var INF  = parseInt(p.substring(18, 20), 16).toString(2).padStart(8, '0');
+  var INF2 = parseInt(p.substring(20, 22), 16).toString(2).padStart(8, '0');
+
+  var canBusActivity = '';
+  var ab = INF.substring(6, 8);
+  if (ab === '00') canBusActivity = R('CAN-Bus im Sleep-Modus (inaktiv)');
+  else if (ab === '01') canBusActivity = G('CAN-Bus aktiv');
+  else if (ab === '10') canBusActivity = R('CAN-Bus Fehler (ungueltige Verbindung)');
+  else if (ab === '11') canBusActivity = R('CAN-Bus nicht verwendet');
+
+  var canBusLabel = (firstTachover === 2) ? 'CAN-Bus Aktivitaet: ' : 'CAN-Bus Aktivitaet (orange): ';
+
+  var carIgnition = '';
+  var ig = INF.substring(4, 6);
+  if (ig === '00') carIgnition = R('Zuendung aus');
+  else if (ig === '01') carIgnition = G('Zuendung ein');
+  else if (ig === '11') carIgnition = G('Information nicht verfuegbar');
+  else if (ig === '10') carIgnition = R('Fehler am CAN-Bus');
+
+  var engineStatus = '';
+  var en = INF.substring(2, 4);
+  if (en === '00') engineStatus = G('Motor aus');
+  else if (en === '01') engineStatus = G('Motor ein');
+  else if (en === '11') engineStatus = G('Information nicht verfuegbar');
+  else if (en === '10') engineStatus = R('Fehler am CAN-Bus');
+
+  var isB3 = (p.substring(24, 26) === 'B3');
+
+  var remoteDownload = '';
+  var rd = INF.substring(0, 2);
+  if (isB3) {
+    if (rd === '00') remoteDownload = R('CAN-Bus im Sleep-Modus');
+    else if (rd === '01') remoteDownload = G('CAN-Bus aktiv');
+    else if (rd === '11') remoteDownload = R('CAN-Bus nicht verwendet');
+    else if (rd === '10') remoteDownload = R('CAN-Bus Fehler');
+  } else {
+    if (rd === '00') remoteDownload = R('Funktion aus');
+    else if (rd === '01') remoteDownload = G('Funktion ein');
+    else if (rd === '11') remoteDownload = R('noch nicht bestimmt');
+    else if (rd === '10') remoteDownload = R('unbekannte Antwort');
+  }
+
+  var d8BusActivity = '';
+  var d8 = INF2.substring(6, 8);
+  if (d8 === '00') d8BusActivity = R('D8-Bus Sleep-Modus (inaktiv)');
+  else if (d8 === '01') d8BusActivity = G('D8-Bus aktiv');
+  else if (d8 === '10') d8BusActivity = R('Kommunikationsfehler oder getrennt');
+  else if (d8 === '11') d8BusActivity = R('Information noch nicht verfuegbar');
+
+  var tachoOnline = '';
+  var to = INF2.substring(4, 6);
+  if (to === '00') tachoOnline = R('keine Kommunikation mit Tachograph');
+  else if (to === '01') tachoOnline = G('Tachograph online');
+  else if (to === '10') tachoOnline = R('Fehler');
+  else if (to === '11') tachoOnline = R('Information nicht verfuegbar (Sleep/Fehler)');
+  else tachoOnline = R('unbekannte Antwort');
+
+  var testStatus = '';
+  if (isB3) {
+    var ts = INF2.substring(2, 4);
+    if (ts === '00') testStatus = R('Funktion aus');
+    else if (ts === '01') testStatus = G('Funktion ein');
+    else if (ts === '10') testStatus = R('Kommunikationsfehler');
+    else if (ts === '11') testStatus = R('Tachograph-Kommunikation mit aktueller Konfiguration nicht unterstuetzt');
+  } else {
+    var ts4 = INF2.substring(0, 4);
+    if (ts4 === '0000') testStatus = G('kein Test (Abwaertskompatibilitaet)');
+    else if (ts4 === '0001') testStatus = G('OK. Nachrichten werden auf dem CAN-Bus empfangen');
+    else if (ts4 === '0010') testStatus = G('OK. Selbsttest des CAN-Bus erfolgreich');
+    else if (ts4 === '0100') testStatus = R('Fehler, CAN-Bus im rezessiven Zustand');
+    else if (ts4 === '0101') testStatus = R('Fehler, CAN-Bus im dominanten Zustand');
+    else testStatus = R('unbekannte Antwort');
+  }
+
+  // Tachograph-Hersteller
+  var tp = p.substring(22, 24);
+  var tachographProducer = '';
+  if (tp === '00') tachographProducer = 'unbekannt';
+  else if (tp === '01') tachographProducer = 'VDO/Siemens/Continental';
+  else if (tp === '02') tachographProducer = 'Efas';
+  else if (tp === '03') tachographProducer = 'Stoneridge';
+  else if (tp === '04') tachographProducer = 'Actia';
+  else if (tp === '80') tachographProducer = 'Verbindungsfehler am D8-Draht';
+  else if (tp === '81') tachographProducer = 'Format „2400" Analog-Tachograph nicht unterstuetzt (nur RTC)';
+  else tachographProducer = 'unbekannte Antwort';
+
+  // Tachograph-Modell (ASCII aus Hex), Trailing-Nullbytes entfernen
+  var modelHex = isB3 ? p.substring(26) : p.substring(24);
+  var model = '';
+  for (var i = 0; i + 1 < modelHex.length; i += 2) {
+    var code = parseInt(modelHex.substr(i, 2), 16);
+    if (code === 0) continue;
+    if (!isNaN(code)) model += String.fromCharCode(code);
+  }
+  model = model.replace(/\0+$/, '').trim();
+
+  var rows = [];
+  rows.push('Firmware-Version: ' + firstTachover + '.' + secondTachover + '.' + thirdTachover + '.' + fourthTachover);
+  rows.push('Hardware-Version: ' + hardwareVersion);
+  rows.push('Seriennummer: ' + serialNumber);
+  rows.push('Tachograph-Hersteller: ' + tachographProducer);
+  rows.push('Tachograph-Modell: ' + (model || '—'));
+  rows.push('<br>' + canBusLabel + canBusActivity);
+  rows.push('Zuendung: ' + carIgnition);
+  rows.push('Motorstatus: ' + engineStatus);
+  if (isB3) {
+    rows.push('CAN-Bus 2 Aktivitaet (gruen): ' + remoteDownload);
+    rows.push('Remote Download: ' + testStatus);
+  } else {
+    rows.push('Remote Download: ' + remoteDownload);
+  }
+  rows.push('D8-Bus Aktivitaet: ' + d8BusActivity);
+  rows.push('Tachograph online auf CAN-Bus: ' + tachoOnline);
+
+  return '<div class="zc-ctmr">' + rows.join('<br>') + '</div>';
 }
 
 /* ════════════════════════════════════════════════════════════════
