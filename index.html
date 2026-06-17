@@ -370,6 +370,10 @@
     border: 1px solid var(--border); border-radius: 2px;
   }
 
+  .zc-clickable { cursor: pointer; }
+  .zc-bit.zc-clickable:hover { border-color: var(--accent); }
+  .zc-dcell.zc-clickable:hover { border-color: var(--accent); transform: translateY(-1px); }
+
   /* ── DATACONFIG kompaktes Raster ── */
   .zc-dgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; }
   .zc-dcell {
@@ -1225,6 +1229,28 @@ function zcFilter(f) {
   zcRender();
 }
 
+function zcToggleBit(n) {
+  // Toggelt das Bit an Position n (1-basiert) der DATACONFIG-Folge,
+  // schreibt den aktualisierten String zurueck ins Eingabefeld und
+  // rendert neu. Felder, die sich dieses Bit teilen, aendern sich mit.
+  if (zcMode !== 'dataconfig') return;
+  var idx = n - 1;
+  if (idx < 0 || idx >= zcBits.length) return;
+  zcBits[idx] = (zcBits[idx] === 1) ? 0 : 1;
+
+  // Eingabefeld aktualisieren: Praefix beibehalten, Bitfolge ersetzen.
+  var ta = document.getElementById('zc-input');
+  var bitStr = zcBits.join('');
+  var raw = ta.value;
+  if (/DATACONFIG\s*=/i.test(raw)) {
+    ta.value = raw.replace(/(DATACONFIG\s*=\s*)[01\s]+/i, '$1' + bitStr);
+  } else {
+    ta.value = '$QR:DATACONFIG=' + bitStr;
+  }
+
+  zcRender();
+}
+
 function zcRender() {
   if (zcMode === 'dataconfig') { zcRenderDataConfig(); return; }
   var defs = zcMode === 'value2' ? ZV2_DEFS : (zcMode === 'value' ? ZV_DEFS : (zcMode === 'config4' ? ZC4_DEFS : (zcMode === 'config3' ? ZC3_DEFS : (zcMode === 'config2' ? ZC2_DEFS : ZC_DEFS))));
@@ -1291,7 +1317,8 @@ function zcRenderDataConfig() {
     var pillCls  = isOn ? 'on' : 'off';
     var pillText = isOn ? 'vorhanden' : 'nicht vorh.';
 
-    html += '<div class="zc-bit' + (isOn ? ' is-on' : '') + '">' +
+    html += '<div class="zc-bit zc-clickable' + (isOn ? ' is-on' : '') + '"' +
+      (known ? ' onclick="zcToggleBit(' + def.n + ')" title="Klicken zum Umschalten"' : '') + '>' +
       '<span class="zc-bit-num' + (isOn ? ' on' : '') + '" style="min-width:48px;white-space:nowrap">Data' + def.n + '</span>' +
       '<span class="zc-pill ' + pillCls + '" style="min-width:78px;text-align:center">' + pillText + '</span>' +
       '<span class="zc-desc' + (isOn ? ' on' : '') + '" style="color:var(--text)">[' + def.name + ']' +
@@ -1318,7 +1345,7 @@ function zcRenderDataGrid() {
     if (zcCurFilter === 'off' &&  isOn) continue;
     shown++;
 
-    html += '<div class="zc-dcell ' + (isOn ? 'on' : 'off') + '" title="Data' + n + ': ' + (isOn ? 'vorhanden' : 'nicht vorhanden') + '">' +
+    html += '<div class="zc-dcell zc-clickable ' + (isOn ? 'on' : 'off') + '" onclick="zcToggleBit(' + n + ')" title="Data' + n + ': ' + (isOn ? 'vorhanden' : 'nicht vorhanden') + ' – klicken zum Umschalten">' +
       '<span class="dn">' + n + '</span>' +
     '</div>';
   }
