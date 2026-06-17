@@ -309,16 +309,16 @@
     background: var(--surface); border: 1px solid var(--border);
     border-radius: 2px; padding: 12px 18px; min-width: 100px;
   }
-  .zc-stat-label { font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
+  .zc-stat-label { font-size: 0.62rem; color: var(--text); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
   .zc-stat-val { font-family: 'Syne', Arial, sans-serif; font-size: 1.6rem; font-weight: 800; }
   .zc-stat-val.on  { color: var(--green); }
-  .zc-stat-val.off { color: var(--muted); }
+  .zc-stat-val.off { color: var(--text); }
   .zc-stat-val.acc { color: var(--accent); }
 
   .zc-filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
   .zc-fbtn {
     padding: 7px 16px; background: transparent;
-    color: var(--muted); font-family: 'DM Mono', 'Courier New', monospace;
+    color: var(--text); font-family: 'DM Mono', 'Courier New', monospace;
     font-size: 0.72rem; border: 1px solid var(--border);
     border-radius: 2px; cursor: pointer; transition: all 0.15s;
   }
@@ -348,7 +348,7 @@
   }
   .zc-bit.is-on { border-color: rgba(68,255,136,0.35); background: rgba(68,255,136,0.04); }
   .zc-bit-num {
-    font-size: 0.72rem; color: var(--muted); min-width: 26px;
+    font-size: 0.72rem; color: var(--text); min-width: 26px;
     padding-top: 2px; font-weight: 500;
   }
   .zc-bit-num.on { color: var(--accent); }
@@ -357,11 +357,11 @@
     border-radius: 2px; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.06em;
   }
   .zc-pill.on  { background: rgba(68,255,136,0.15); color: var(--green); border: 1px solid rgba(68,255,136,0.3); }
-  .zc-pill.off { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid var(--border); }
-  .zc-desc { font-size: 0.71rem; color: var(--muted); line-height: 1.55; flex: 1; }
+  .zc-pill.off { background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--border); }
+  .zc-desc { font-size: 0.71rem; color: var(--text); line-height: 1.55; flex: 1; }
   .zc-desc.on { color: var(--text); }
   .zc-no-def { font-style: italic; }
-  .zc-empty { font-size: 0.78rem; color: var(--muted); text-align: center; padding: 32px; border: 1px solid var(--border); border-radius: 2px; }
+  .zc-empty { font-size: 0.78rem; color: var(--text); text-align: center; padding: 32px; border: 1px solid var(--border); border-radius: 2px; }
   .zc-error { color: var(--red); font-size: 0.78rem; padding: 14px 16px; border: 1px solid rgba(255,68,68,0.3); border-radius: 2px; background: rgba(255,68,68,0.06); }
 
   .zc-ctmr {
@@ -1165,8 +1165,9 @@ function zcParse() {
   zcMode = isDataConfig ? 'dataconfig' : (isValue2 ? 'value2' : (isValue ? 'value' : (isConfig4 ? 'config4' : (isConfig3 ? 'config3' : (isConfig2 ? 'config2' : 'config')))));
 
   if (zcMode === 'dataconfig') {
-    // DATACONFIG ist eine kommalose Bitfolge: jede Stelle = ein Bit (Data1..DataN)
-    var dm = raw.match(/DATACONFIG\s*=\s*([01\s]+)/i);
+    // DATACONFIG ist eine kommalose Bitfolge: jede Stelle = ein Bit (Data1..DataN).
+    // Optionales Schreib-Praefix "0000," (oder aehnlich) nach dem "=" wird ignoriert.
+    var dm = raw.match(/DATACONFIG\s*=\s*(?:[0-9A-F]+\s*,\s*)?([01\s]+)/i);
     var dseq = dm ? dm[1] : raw;
     zcBits = dseq.replace(/\s+/g, '').split('').map(function(c) { return parseInt(c, 10); }).filter(function(b) { return !isNaN(b); });
   } else {
@@ -1238,15 +1239,11 @@ function zcToggleBit(n) {
   if (idx < 0 || idx >= zcBits.length) return;
   zcBits[idx] = (zcBits[idx] === 1) ? 0 : 1;
 
-  // Eingabefeld aktualisieren: Praefix beibehalten, Bitfolge ersetzen.
+  // Eingabefeld aktualisieren: Bei einer Aenderung wird das Schreibkommando
+  // gesetzt: $AL+DATACONFIG=0000,<bitfolge>
   var ta = document.getElementById('zc-input');
   var bitStr = zcBits.join('');
-  var raw = ta.value;
-  if (/DATACONFIG\s*=/i.test(raw)) {
-    ta.value = raw.replace(/(DATACONFIG\s*=\s*)[01\s]+/i, '$1' + bitStr);
-  } else {
-    ta.value = '$QR:DATACONFIG=' + bitStr;
-  }
+  ta.value = '$AL+DATACONFIG=0000,' + bitStr;
 
   zcRender();
 }
