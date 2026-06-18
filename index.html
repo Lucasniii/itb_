@@ -316,6 +316,15 @@
   .zc-stat-val.acc { color: var(--accent); }
 
   .zc-filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .zc-search-row { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+  .zc-search {
+    flex: 1; padding: 8px 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
+    color: var(--text); font-family: 'DM Mono', 'Courier New', monospace; font-size: 0.74rem;
+    transition: border-color 0.15s;
+  }
+  .zc-search:focus { outline: none; border-color: var(--accent); }
+  .zc-search::placeholder { color: var(--muted); }
   .zc-fbtn {
     padding: 7px 16px; background: transparent;
     color: var(--text); font-family: 'DM Mono', 'Courier New', monospace;
@@ -480,6 +489,11 @@
       <button class="zc-fbtn active" id="zc-f-all" onclick="zcFilter('all')">All</button>
       <button class="zc-fbtn" id="zc-f-on"  onclick="zcFilter('on')"><span id="zc-f-on-label">Active only</span></button>
       <button class="zc-fbtn" id="zc-f-off" onclick="zcFilter('off')"><span id="zc-f-off-label">Inactive only</span></button>
+    </div>
+
+    <div id="zc-search-row" class="zc-search-row" style="display:none">
+      <input type="text" id="zc-search" class="zc-search" placeholder="Suchen (Name, Beschreibung oder Nummer)…" oninput="zcRender()">
+      <button class="zc-fbtn" id="zc-search-clear" onclick="zcClearSearch()" title="Suche loeschen">✕</button>
     </div>
 
     <div id="zc-out"></div>
@@ -1144,6 +1158,7 @@ function zcParse() {
     out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG or $QR:CHECKTMR string above and press Decode.</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
     document.getElementById('zc-dcview-row').style.display = 'none';
+    document.getElementById('zc-search-row').style.display = 'none';
     return;
   }
 
@@ -1152,6 +1167,7 @@ function zcParse() {
     zcMode = 'checktmr';
     document.getElementById('zc-filter-row').style.display = 'none';
     document.getElementById('zc-dcview-row').style.display = 'none';
+    document.getElementById('zc-search-row').style.display = 'none';
     out.innerHTML = zcParseCheckTmr(raw);
     return;
   }
@@ -1180,6 +1196,7 @@ function zcParse() {
     out.innerHTML = '<div class="zc-error">No valid string found. Expected: $QR:ZCONFIG=… / $QR:ZCONFIG2=… / $QR:ZCONFIG3=… / $QR:ZCONFIG4=… / $QR:ZVALUE=… / $QR:ZVALUE2=… / $QR:DATACONFIG=…</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
     document.getElementById('zc-dcview-row').style.display = 'none';
+    document.getElementById('zc-search-row').style.display = 'none';
     return;
   }
 
@@ -1207,6 +1224,8 @@ function zcParse() {
   }
 
   document.getElementById('zc-filter-row').style.display = 'flex';
+  document.getElementById('zc-search-row').style.display = 'flex';
+  document.getElementById('zc-search').value = '';
   zcCurFilter = 'all';
   ['all','on','off'].forEach(function(x) {
     document.getElementById('zc-f-' + x).classList.toggle('active', x === 'all');
@@ -1248,9 +1267,21 @@ function zcToggleBit(n) {
   zcRender();
 }
 
+function zcSearchTerm() {
+  var el = document.getElementById('zc-search');
+  return el ? el.value.trim().toLowerCase() : '';
+}
+
+function zcClearSearch() {
+  var el = document.getElementById('zc-search');
+  if (el) el.value = '';
+  zcRender();
+}
+
 function zcRender() {
   if (zcMode === 'dataconfig') { zcRenderDataConfig(); return; }
   var defs = zcMode === 'value2' ? ZV2_DEFS : (zcMode === 'value' ? ZV_DEFS : (zcMode === 'config4' ? ZC4_DEFS : (zcMode === 'config3' ? ZC3_DEFS : (zcMode === 'config2' ? ZC2_DEFS : ZC_DEFS))));
+  var q = zcSearchTerm();
   var html = '<div class="zc-grid">';
   var shown = 0;
 
@@ -1261,9 +1292,14 @@ function zcRender() {
 
     if (zcCurFilter === 'on'  && !isOn) continue;
     if (zcCurFilter === 'off' &&  isOn) continue;
-    shown++;
 
     var desc = defs[num];
+
+    if (q) {
+      var hay = (String(num) + ' ' + (desc || '')).toLowerCase();
+      if (hay.indexOf(q) === -1) continue;
+    }
+    shown++;
 
     if (zcMode === 'value' || zcMode === 'value2') {
       // Value mode: show the actual number in the pill
@@ -1300,6 +1336,7 @@ function zcRenderDataConfig() {
   // Bit=1 -> vorhanden (gruen), Bit=0 -> nicht vorhanden.
   var html = '<div class="zc-grid zc-grid-cols">';
   var shown = 0;
+  var q = zcSearchTerm();
 
   for (var i = 0; i < DATACONFIG_DEFS.length; i++) {
     var def = DATACONFIG_DEFS[i];
@@ -1309,6 +1346,11 @@ function zcRenderDataConfig() {
 
     if (zcCurFilter === 'on'  && !isOn) continue;
     if (zcCurFilter === 'off' &&  isOn) continue;
+
+    if (q) {
+      var hay = ('data' + def.n + ' ' + def.n + ' ' + def.name).toLowerCase();
+      if (hay.indexOf(q) === -1) continue;
+    }
     shown++;
 
     var pillCls  = isOn ? 'on' : 'off';
@@ -1334,12 +1376,28 @@ function zcRenderDataGrid() {
   // gruen = vorhanden (Bit=1), grau = nicht vorhanden (Bit=0).
   var html = '<div class="zc-dgrid">';
   var shown = 0;
+  var q = zcSearchTerm();
+
+  // Feldnamen je DataN zusammenfassen, damit die Suche nach Namen auch
+  // im Raster (das nur Nummern zeigt) das richtige Kaestchen trifft.
+  var nameByN = {};
+  if (q) {
+    for (var di = 0; di < DATACONFIG_DEFS.length; di++) {
+      var d = DATACONFIG_DEFS[di];
+      nameByN[d.n] = (nameByN[d.n] || '') + ' ' + d.name;
+    }
+  }
 
   for (var n = 1; n <= zcBits.length; n++) {
     var isOn = (zcBits[n - 1] === 1);
 
     if (zcCurFilter === 'on'  && !isOn) continue;
     if (zcCurFilter === 'off' &&  isOn) continue;
+
+    if (q) {
+      var hay = ('data' + n + ' ' + n + ' ' + (nameByN[n] || '')).toLowerCase();
+      if (hay.indexOf(q) === -1) continue;
+    }
     shown++;
 
     html += '<div class="zc-dcell zc-clickable ' + (isOn ? 'on' : 'off') + '" onclick="zcToggleBit(' + n + ')" title="Data' + n + ': ' + (isOn ? 'vorhanden' : 'nicht vorhanden') + ' – klicken zum Umschalten">' +
