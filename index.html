@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ITB.Decoder</title>
+<title>ITB.BERICHTE – Auswertung</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
@@ -316,18 +316,9 @@
   .zc-stat-val.acc { color: var(--accent); }
 
   .zc-filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .zc-search-row { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
-  .zc-search {
-    flex: 1; padding: 8px 14px;
-    background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
-    color: var(--text); font-family: 'DM Mono', 'Courier New', monospace; font-size: 0.74rem;
-    transition: border-color 0.15s;
-  }
-  .zc-search:focus { outline: none; border-color: var(--accent); }
-  .zc-search::placeholder { color: var(--muted); }
   .zc-fbtn {
     padding: 7px 16px; background: transparent;
-    color: var(--text); font-family: 'DM Mono', 'Courier New', monospace;
+    color: var(--muted); font-family: 'DM Mono', 'Courier New', monospace;
     font-size: 0.72rem; border: 1px solid var(--border);
     border-radius: 2px; cursor: pointer; transition: all 0.15s;
   }
@@ -335,20 +326,6 @@
   .zc-fbtn.active { color: var(--accent); border-color: var(--accent); background: rgba(232,255,71,0.06); }
 
   .zc-grid { display: flex; flex-direction: column; gap: 8px; }
-  .zc-grid.zc-grid-cols {
-    display: block;
-    column-count: 2;
-    column-gap: 6px;
-  }
-  .zc-grid.zc-grid-cols .zc-bit {
-    break-inside: avoid;
-    margin-bottom: 6px;
-  }
-  .zc-grid.zc-grid-cols .zc-desc {
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: break-word;
-  }
   .zc-bit {
     display: flex; align-items: flex-start; gap: 10px;
     padding: 11px 14px; border-radius: 2px;
@@ -357,7 +334,7 @@
   }
   .zc-bit.is-on { border-color: rgba(68,255,136,0.35); background: rgba(68,255,136,0.04); }
   .zc-bit-num {
-    font-size: 0.72rem; color: var(--text); min-width: 26px;
+    font-size: 0.72rem; color: var(--muted); min-width: 26px;
     padding-top: 2px; font-weight: 500;
   }
   .zc-bit-num.on { color: var(--accent); }
@@ -366,43 +343,24 @@
     border-radius: 2px; white-space: nowrap; flex-shrink: 0; letter-spacing: 0.06em;
   }
   .zc-pill.on  { background: rgba(68,255,136,0.15); color: var(--green); border: 1px solid rgba(68,255,136,0.3); }
-  .zc-pill.off { background: rgba(255,255,255,0.04); color: var(--text); border: 1px solid var(--border); }
-  .zc-desc { font-size: 0.71rem; color: var(--text); line-height: 1.55; flex: 1; }
+  .zc-pill.off { background: rgba(255,255,255,0.04); color: var(--muted); border: 1px solid var(--border); }
+  .zc-desc { font-size: 0.71rem; color: var(--muted); line-height: 1.55; flex: 1; }
   .zc-desc.on { color: var(--text); }
   .zc-no-def { font-style: italic; }
-  .zc-empty { font-size: 0.78rem; color: var(--text); text-align: center; padding: 32px; border: 1px solid var(--border); border-radius: 2px; }
+  .zc-empty { font-size: 0.78rem; color: var(--muted); text-align: center; padding: 32px; border: 1px solid var(--border); border-radius: 2px; }
   .zc-error { color: var(--red); font-size: 0.78rem; padding: 14px 16px; border: 1px solid rgba(255,68,68,0.3); border-radius: 2px; background: rgba(255,68,68,0.06); }
-
-  .zc-ctmr {
-    font-size: 0.82rem; line-height: 1.9; color: var(--text);
-    padding: 18px 20px; background: var(--surface);
-    border: 1px solid var(--border); border-radius: 2px;
-  }
-
-  .zc-clickable { cursor: pointer; }
-  .zc-bit.zc-clickable:hover { border-color: var(--accent); }
-  .zc-dcell.zc-clickable:hover { border-color: var(--accent); transform: translateY(-1px); }
-
-  /* ── DATACONFIG kompaktes Raster ── */
-  .zc-dgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; }
-  .zc-dcell {
-    display: flex; align-items: center; justify-content: center;
-    padding: 12px 4px; border-radius: 3px; border: 1px solid var(--border);
-    background: var(--surface);
-    transition: transform 0.1s;
-  }
-  .zc-dcell:hover { transform: translateY(-1px); }
-  .zc-dcell .dn { font-family: 'Syne', Arial, sans-serif; font-weight: 800; font-size: 1rem; }
-  .zc-dcell.on  { background: rgba(68,255,136,0.12); border-color: rgba(68,255,136,0.4); }
-  .zc-dcell.on  .dn { color: var(--green); }
-  .zc-dcell.off { background: var(--surface); border-color: var(--border); }
-  .zc-dcell.off .dn { color: var(--text); }
 
   @media (max-width: 600px) {
     .summary-grid { grid-template-columns: repeat(2,1fr); }
     .zc-grid { grid-template-columns: 1fr; }
-    .zc-grid.zc-grid-cols { column-count: 1; }
   }
+  /* ── KM-Pruefung Option ── */
+  .pruef-opt {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 16px;
+    font-size: 0.74rem; color: var(--text); cursor: pointer; user-select: none;
+  }
+  .pruef-opt input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+
 </style>
 </head>
 <body>
@@ -433,6 +391,9 @@
       <label for="pruef-file-input" class="btn-choose">📁 Datei auswaehlen</label>
       <button class="btn-run" id="pruef-run" disabled>▶ Pruefung starten</button>
     </div>
+    <label class="pruef-opt">
+      <input type="checkbox" id="pruef-ignore1km"> 1-km-Spruenge ignorieren (Abweichung bis 1 km)
+    </label>
   </div>
 
   <div class="status-bar" id="pruef-status"></div>
@@ -474,26 +435,16 @@
 
     <div class="zc-input-row">
       <textarea class="zc-textarea" id="zc-input" rows="3"
-        placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG or $QR:CHECKTMR string here…"></textarea>
+        placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE or $QR:ZVALUE2 string here…"></textarea>
       <button class="btn-run" style="flex-shrink:0" onclick="zcParse()">▶ Decode</button>
     </div>
 
 
 
-    <div id="zc-dcview-row" class="zc-filter-row" style="display:none">
-      <button class="zc-fbtn active" id="zc-dc-full" onclick="zcSetDcView('full')">Gesamt</button>
-      <button class="zc-fbtn" id="zc-dc-grid" onclick="zcSetDcView('grid')">Data 1–99</button>
-    </div>
-
     <div id="zc-filter-row" class="zc-filter-row" style="display:none">
       <button class="zc-fbtn active" id="zc-f-all" onclick="zcFilter('all')">All</button>
       <button class="zc-fbtn" id="zc-f-on"  onclick="zcFilter('on')"><span id="zc-f-on-label">Active only</span></button>
       <button class="zc-fbtn" id="zc-f-off" onclick="zcFilter('off')"><span id="zc-f-off-label">Inactive only</span></button>
-    </div>
-
-    <div id="zc-search-row" class="zc-search-row" style="display:none">
-      <input type="text" id="zc-search" class="zc-search" placeholder="Suchen (Name, Beschreibung oder Nummer)…" oninput="zcRender()">
-      <button class="zc-fbtn" id="zc-search-clear" onclick="zcClearSearch()" title="Suche loeschen">✕</button>
     </div>
 
     <div id="zc-out"></div>
@@ -700,7 +651,11 @@ function analyze(ws) {
       if (prevKmStand !== null) {
         var diff = Math.round((kmStand - prevKmStand) * 10) / 10;
         var kmValRounded = Math.round(kmVal * 10) / 10;
-        if (diff > 0 && Math.round(Math.abs(kmValRounded - diff) * 10) / 10 > 0.1) {
+        var abweichung = Math.round(Math.abs(kmValRounded - diff) * 10) / 10;
+        // Toleranz: standardmaessig 0.1 km; bei aktivierter Option bis 1 km ignorieren
+        var ignore1km = document.getElementById('pruef-ignore1km') && document.getElementById('pruef-ignore1km').checked;
+        var toleranz = ignore1km ? 1 : 0.1;
+        if (diff > 0 && abweichung > toleranz) {
           row.error = true;
           row.expectedKm = diff;
           currentGroup.errorRows.push(row);
@@ -1104,140 +1059,50 @@ var ZV2_DEFS = {
   23: 'Dedicated customer feature'
 };
 
-var DATACONFIG_DEFS = [
-  {n:1,name:'Longitude'}, {n:2,name:'Latitude'}, {n:3,name:'Heading'}, {n:4,name:'Satellite'},
-  {n:5,name:'GSM_signal'}, {n:6,name:'Altitude'}, {n:7,name:'GSM_operator'}, {n:8,name:'Inputs'},
-  {n:9,name:'Inputs2'}, {n:10,name:'Outputs'}, {n:11,name:'VoltageAnalog1'}, {n:12,name:'VoltageAnalog2'},
-  {n:13,name:'VoltageAnalog3'}, {n:14,name:'VoltageAnalog4'}, {n:15,name:'VoltageAnalog6'}, {n:16,name:'SpeedGPS'},
-  {n:17,name:'Vehicle_speed'}, {n:18,name:'MileageGPS'}, {n:19,name:'Total_distance'}, {n:20,name:'Total_fuel'},
-  {n:21,name:'Total_idle_fuel'}, {n:22,name:'Fuel_level_percents'}, {n:23,name:'Fuel_level_litres'}, {n:24,name:'Fuel_Flag'},
-  {n:25,name:'Fuel_consump'}, {n:26,name:'Accelerator'}, {n:27,name:'Engine_speed'}, {n:28,name:'Engine_temperature'},
-  {n:29,name:'Engine_hours'}, {n:30,name:'Engine_idle_time'}, {n:31,name:'Oil_temperature'}, {n:32,name:'Hydraulic_oil_temperature'},
-  {n:33,name:'Tachograph'}, {n:34,name:'Axleweight1'}, {n:35,name:'Axleweight2'}, {n:36,name:'Axleweight3'},
-  {n:37,name:'Axleweight4'}, {n:38,name:'Axleweight5'}, {n:39,name:'axle_brutto'}, {n:40,name:'Indicators_C'},
-  {n:41,name:'1WireTemp_1'}, {n:41,name:'WireCode_1'}, {n:41,name:'1WireTemp_2'}, {n:41,name:'WireCode_2'},
-  {n:41,name:'1WireTemp_3'}, {n:41,name:'WireCode_3'}, {n:41,name:'1WireTemp_4'}, {n:41,name:'Wire Code_4'},
-  {n:41,name:'1WireTemp_5'}, {n:41,name:'WireCode_5'}, {n:41,name:'1WireTemp_6'}, {n:41,name:'WireCode_6'},
-  {n:42,name:'Rapid_pedal_pressure'}, {n:43,name:'Rapid_accelerations'}, {n:44,name:'Rapid_brakings'}, {n:45,name:'Engine_speed_overspeed_counter'},
-  {n:46,name:'RANGE'}, {n:47,name:'Drive_time_over_rpmlimit'}, {n:48,name:'Drive_time_over_speedlimit'}, {n:49,name:'Driver1_IDcard_tacho'},
-  {n:50,name:'Driver2_IDcard_tacho'}, {n:51,name:'DriverCode'}, {n:52,name:'3DX'}, {n:52,name:'3DY'},
-  {n:52,name:'3DZ'}, {n:53,name:'ecospeed_1'}, {n:53,name:'ecospeed_2'}, {n:53,name:'ecospeed_3'},
-  {n:53,name:'ecospeed_4'}, {n:53,name:'ecospeed_5'}, {n:53,name:'ecospeed_6'}, {n:53,name:'ecoRPM_1'},
-  {n:53,name:'ecoRPM_2'}, {n:53,name:'ecoRPM_3'}, {n:53,name:'ecoRPM_4'}, {n:53,name:'ecoRPM_5'},
-  {n:53,name:'ecoRPM_6'}, {n:53,name:'eco_acc_1'}, {n:53,name:'eco_acc_2'}, {n:53,name:'eco_acc_3'},
-  {n:53,name:'eco_acc_4'}, {n:53,name:'eco_acc_5'}, {n:53,name:'eco_acc_6'}, {n:53,name:'eco_braking_1'},
-  {n:53,name:'eco_braking_2'}, {n:53,name:'eco_braking_3'}, {n:53,name:'eco_braking_4'}, {n:53,name:'eco_braking_5'},
-  {n:53,name:'eco_braking_6'}, {n:53,name:'eco_pedalpress_1'}, {n:53,name:'eco_pedalpress_2'}, {n:53,name:'eco_pedalpress_3'},
-  {n:53,name:'eco_pedalpress_4'}, {n:53,name:'eco_pedalpress_5'}, {n:53,name:'eco_pedalpress_6'}, {n:53,name:'Total_number_of_brakeapplies'},
-  {n:53,name:'Pedal_braking_factor'}, {n:53,name:'Engine_braking_factor'}, {n:53,name:'Total_number_of_accelerator_kick_downs'}, {n:53,name:'Total_driving_time_with_accelerator_kick_down'},
-  {n:53,name:'Total_driving_time_when_cruise_control_is_on'}, {n:54,name:'Dedicated customer feature'}, {n:55,name:'adblue'}, {n:56,name:'engine_oil_level'},
-  {n:57,name:'alternative_gasoline'}, {n:58,name:'engine_torque'}, {n:59,name:'distance_to_service'}, {n:60,name:'coasting'},
-  {n:61,name:'pto_duration'}, {n:62,name:'pto_fuel_consumption'}, {n:63,name:'clutch_presses'}, {n:64,name:'retarder_usage'},
-  {n:65,name:'R2'}, {n:65,name:'R3'}, {n:65,name:'R4'}, {n:65,name:'R5'},
-  {n:65,name:'R6'}, {n:66,name:'R7'}, {n:67,name:'beacon1'}, {n:67,name:'beacon2'},
-  {n:68,name:'Dedicated customer feature'}, {n:69,name:'vin_trailer'}, {n:70,name:'battery_temperature'}, {n:71,name:'total_driving_time_in_effective_range'},
-  {n:72,name:'total_engine_cold_running_time'}, {n:73,name:'engine_load'}, {n:74,name:'gearbox'}, {n:75,name:'power_mode'},
-  {n:76,name:'trailer_gross_weight'}, {n:77,name:'dpf_soot_level'}, {n:78,name:'passenger_seats_and_seatbelts'}, {n:79,name:'driving_time'},
-  {n:80,name:'turbo_pressure'}, {n:81,name:'ambient_temperature'}, {n:82,name:'brake_pedal_pressure'}, {n:83,name:'engine_all_starts_count'},
-  {n:84,name:'engine_cold_starts_count'}, {n:85,name:'engine_starts_by_ignition_count'}, {n:86,name:'handbrake_applies_on_the_ride'}, {n:87,name:'battery_instantaneous_voltage'},
-  {n:88,name:'electric_car\'s_battery_instantaneous_current'}, {n:89,name:'electric_car\'s_battery_instantaneous_power'}, {n:90,name:'electric_car\'s_battery_charging_current'}, {n:91,name:'total_electric_engine_running_time'},
-  {n:92,name:'electric_car\'s_battery_charging_status'}, {n:93,name:'remaining_charge_time'}, {n:94,name:'electric_car\'s_total_energy_recuperated'}, {n:95,name:'electric_car\'s_total_energy_used_while_driving'},
-  {n:96,name:'electric_car\'s_total_energy_charged'}, {n:97,name:'electric_car\'s_total_effective_energy_used'}, {n:98,name:'electric_car\'s_battery_state_of_health'}, {n:99,name:'electric_car\'s_battery_charging_cycles_count'},
-];
-
 var zcBits = [];
 var zcMode = 'config'; // 'config' | 'value' | 'value2'
 var zcCurFilter = 'all';
-var zcDcView = 'full'; // 'full' | 'grid' (nur DATACONFIG)
 
 function zcParse() {
   var raw = document.getElementById('zc-input').value.trim();
   var out = document.getElementById('zc-out');
 
   if (!raw) {
-    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG or $QR:CHECKTMR string above and press Decode.</div>';
+    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE or $QR:ZVALUE2 string above and press Decode.</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
-    document.getElementById('zc-dcview-row').style.display = 'none';
-    document.getElementById('zc-search-row').style.display = 'none';
     return;
   }
 
-  var isCheckTmr = /CHECKTMR/i.test(raw);
-  if (isCheckTmr) {
-    zcMode = 'checktmr';
-    document.getElementById('zc-filter-row').style.display = 'none';
-    document.getElementById('zc-dcview-row').style.display = 'none';
-    document.getElementById('zc-search-row').style.display = 'none';
-    out.innerHTML = zcParseCheckTmr(raw);
-    return;
-  }
+  var isValue2  = /ZVALUE2/i.test(raw);
+  var isValue   = !isValue2 && /ZVALUE/i.test(raw);
+  var isConfig4 = /ZCONFIG4/i.test(raw);
+  var isConfig3 = !isConfig4 && /ZCONFIG3/i.test(raw);
+  var isConfig2 = !isConfig4 && !isConfig3 && /ZCONFIG2/i.test(raw);
+  zcMode = isValue2 ? 'value2' : (isValue ? 'value' : (isConfig4 ? 'config4' : (isConfig3 ? 'config3' : (isConfig2 ? 'config2' : 'config'))));
 
-  var isDataConfig = /DATACONFIG/i.test(raw);
-  var isValue2  = !isDataConfig && /ZVALUE2/i.test(raw);
-  var isValue   = !isDataConfig && !isValue2 && /ZVALUE/i.test(raw);
-  var isConfig4 = !isDataConfig && /ZCONFIG4/i.test(raw);
-  var isConfig3 = !isDataConfig && !isConfig4 && /ZCONFIG3/i.test(raw);
-  var isConfig2 = !isDataConfig && !isConfig4 && !isConfig3 && /ZCONFIG2/i.test(raw);
-  zcMode = isDataConfig ? 'dataconfig' : (isValue2 ? 'value2' : (isValue ? 'value' : (isConfig4 ? 'config4' : (isConfig3 ? 'config3' : (isConfig2 ? 'config2' : 'config')))));
-
-  if (zcMode === 'dataconfig') {
-    // DATACONFIG ist eine kommalose Bitfolge: jede Stelle = ein Bit (Data1..DataN).
-    // Optionales Schreib-Praefix "0000," (oder aehnlich) nach dem "=" wird ignoriert.
-    var dm = raw.match(/DATACONFIG\s*=\s*(?:[0-9A-F]+\s*,\s*)?([01\s]+)/i);
-    var dseq = dm ? dm[1] : raw;
-    zcBits = dseq.replace(/\s+/g, '').split('').map(function(c) { return parseInt(c, 10); }).filter(function(b) { return !isNaN(b); });
-  } else {
-    var m = raw.match(/Z(?:VALUE2|VALUE|CONFIG4|CONFIG3|CONFIG2|CONFIG)\s*=\s*([\d,\s]+)/i);
-    var seq = m ? m[1] : raw;
-    zcBits = seq.split(',').map(function(s) { return parseInt(s.trim(), 10); }).filter(function(b) { return !isNaN(b); });
-  }
+  var m = raw.match(/Z(?:VALUE2|VALUE|CONFIG4|CONFIG3|CONFIG2|CONFIG)\s*=\s*([\d,\s]+)/i);
+  var seq = m ? m[1] : raw;
+  zcBits = seq.split(',').map(function(s) { return parseInt(s.trim(), 10); }).filter(function(b) { return !isNaN(b); });
 
   if (!zcBits.length) {
-    out.innerHTML = '<div class="zc-error">No valid string found. Expected: $QR:ZCONFIG=… / $QR:ZCONFIG2=… / $QR:ZCONFIG3=… / $QR:ZCONFIG4=… / $QR:ZVALUE=… / $QR:ZVALUE2=… / $QR:DATACONFIG=…</div>';
+    out.innerHTML = '<div class="zc-error">No valid string found. Expected: $QR:ZCONFIG=\u2026 / $QR:ZCONFIG2=\u2026 / $QR:ZCONFIG3=\u2026 / $QR:ZCONFIG4=\u2026 / $QR:ZVALUE=\u2026 / $QR:ZVALUE2=\u2026</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
-    document.getElementById('zc-dcview-row').style.display = 'none';
-    document.getElementById('zc-search-row').style.display = 'none';
     return;
   }
 
-  // Update filter labels based on mode
   if (zcMode === 'value' || zcMode === 'value2') {
     document.getElementById('zc-f-on-label').textContent  = 'Non-zero only';
     document.getElementById('zc-f-off-label').textContent = 'Zero only';
-  } else if (zcMode === 'dataconfig') {
-    document.getElementById('zc-f-on-label').textContent  = 'Vorhanden';
-    document.getElementById('zc-f-off-label').textContent = 'Nicht vorhanden';
   } else {
     document.getElementById('zc-f-on-label').textContent  = 'Active only';
     document.getElementById('zc-f-off-label').textContent = 'Inactive only';
   }
 
-  // DATACONFIG-Ansichtsumschalter (Gesamt / Data 1-99) nur bei DATACONFIG zeigen
-  var dcViewRow = document.getElementById('zc-dcview-row');
-  if (zcMode === 'dataconfig') {
-    dcViewRow.style.display = 'flex';
-    zcDcView = 'full';
-    document.getElementById('zc-dc-full').classList.add('active');
-    document.getElementById('zc-dc-grid').classList.remove('active');
-  } else {
-    dcViewRow.style.display = 'none';
-  }
-
   document.getElementById('zc-filter-row').style.display = 'flex';
-  document.getElementById('zc-search-row').style.display = 'flex';
-  document.getElementById('zc-search').value = '';
   zcCurFilter = 'all';
   ['all','on','off'].forEach(function(x) {
     document.getElementById('zc-f-' + x).classList.toggle('active', x === 'all');
   });
-  zcRender();
-}
-
-function zcSetDcView(v) {
-  zcDcView = v;
-  document.getElementById('zc-dc-full').classList.toggle('active', v === 'full');
-  document.getElementById('zc-dc-grid').classList.toggle('active', v === 'grid');
-  // Im Raster-Modus ist der Vorhanden/Nicht-Filter weiterhin nutzbar
   zcRender();
 }
 
@@ -1249,39 +1114,8 @@ function zcFilter(f) {
   zcRender();
 }
 
-function zcToggleBit(n) {
-  // Toggelt das Bit an Position n (1-basiert) der DATACONFIG-Folge,
-  // schreibt den aktualisierten String zurueck ins Eingabefeld und
-  // rendert neu. Felder, die sich dieses Bit teilen, aendern sich mit.
-  if (zcMode !== 'dataconfig') return;
-  var idx = n - 1;
-  if (idx < 0 || idx >= zcBits.length) return;
-  zcBits[idx] = (zcBits[idx] === 1) ? 0 : 1;
-
-  // Eingabefeld aktualisieren: Bei einer Aenderung wird das Schreibkommando
-  // gesetzt: $AL+DATACONFIG=0000,<bitfolge>
-  var ta = document.getElementById('zc-input');
-  var bitStr = zcBits.join('');
-  ta.value = '$AL+DATACONFIG=0000,' + bitStr;
-
-  zcRender();
-}
-
-function zcSearchTerm() {
-  var el = document.getElementById('zc-search');
-  return el ? el.value.trim().toLowerCase() : '';
-}
-
-function zcClearSearch() {
-  var el = document.getElementById('zc-search');
-  if (el) el.value = '';
-  zcRender();
-}
-
 function zcRender() {
-  if (zcMode === 'dataconfig') { zcRenderDataConfig(); return; }
   var defs = zcMode === 'value2' ? ZV2_DEFS : (zcMode === 'value' ? ZV_DEFS : (zcMode === 'config4' ? ZC4_DEFS : (zcMode === 'config3' ? ZC3_DEFS : (zcMode === 'config2' ? ZC2_DEFS : ZC_DEFS))));
-  var q = zcSearchTerm();
   var html = '<div class="zc-grid">';
   var shown = 0;
 
@@ -1292,17 +1126,11 @@ function zcRender() {
 
     if (zcCurFilter === 'on'  && !isOn) continue;
     if (zcCurFilter === 'off' &&  isOn) continue;
+    shown++;
 
     var desc = defs[num];
 
-    if (q) {
-      var hay = (String(num) + ' ' + (desc || '')).toLowerCase();
-      if (hay.indexOf(q) === -1) continue;
-    }
-    shown++;
-
     if (zcMode === 'value' || zcMode === 'value2') {
-      // Value mode: show the actual number in the pill
       var pillCls  = isOn ? 'on' : 'off';
       var pillText = val.toString();
       html += '<div class="zc-bit' + (isOn ? ' is-on' : '') + '">' +
@@ -1313,10 +1141,9 @@ function zcRender() {
         '</span>' +
       '</div>';
     } else {
-      // Config mode: ON / OFF
       html += '<div class="zc-bit' + (isOn ? ' is-on' : '') + '">' +
         '<span class="zc-bit-num' + (isOn ? ' on' : '') + '">' + num + '</span>' +
-        '<span class="zc-pill ' + (isOn ? 'on' : 'off') + '">' + (isOn ? '1 – ON' : '0 – OFF') + '</span>' +
+        '<span class="zc-pill ' + (isOn ? 'on' : 'off') + '">' + (isOn ? '1 \u2013 ON' : '0 \u2013 OFF') + '</span>' +
         '<span class="zc-desc' + (isOn ? ' on' : '') + '">' +
           (desc ? desc : '<span class="zc-no-def">Not defined</span>') +
         '</span>' +
@@ -1327,230 +1154,6 @@ function zcRender() {
   html += '</div>';
   if (!shown) html = '<div class="zc-empty">No entries match the current filter.</div>';
   document.getElementById('zc-out').innerHTML = html;
-}
-
-function zcRenderDataConfig() {
-  if (zcDcView === 'grid') { zcRenderDataGrid(); return; }
-  // Iteriert ueber die Feld-Definitionsliste. Eine Bit-Position (DataN) kann
-  // mehrere Feldnamen haben -> jeder Feldname wird als eigene Zeile gezeigt.
-  // Bit=1 -> vorhanden (gruen), Bit=0 -> nicht vorhanden.
-  var html = '<div class="zc-grid zc-grid-cols">';
-  var shown = 0;
-  var q = zcSearchTerm();
-
-  for (var i = 0; i < DATACONFIG_DEFS.length; i++) {
-    var def = DATACONFIG_DEFS[i];
-    var bit = zcBits[def.n - 1]; // DataN ist 1-basiert
-    var isOn = (bit === 1);
-    var known = (typeof bit !== 'undefined');
-
-    if (zcCurFilter === 'on'  && !isOn) continue;
-    if (zcCurFilter === 'off' &&  isOn) continue;
-
-    if (q) {
-      var hay = ('data' + def.n + ' ' + def.n + ' ' + def.name).toLowerCase();
-      if (hay.indexOf(q) === -1) continue;
-    }
-    shown++;
-
-    var pillCls  = isOn ? 'on' : 'off';
-    var pillText = isOn ? 'vorhanden' : 'nicht vorh.';
-
-    html += '<div class="zc-bit zc-clickable' + (isOn ? ' is-on' : '') + '"' +
-      (known ? ' onclick="zcToggleBit(' + def.n + ')" title="Klicken zum Umschalten"' : '') + '>' +
-      '<span class="zc-bit-num' + (isOn ? ' on' : '') + '" style="min-width:48px;white-space:nowrap">Data' + def.n + '</span>' +
-      '<span class="zc-pill ' + pillCls + '" style="min-width:78px;text-align:center">' + pillText + '</span>' +
-      '<span class="zc-desc' + (isOn ? ' on' : '') + '" style="color:var(--text)">[' + def.name + ']' +
-        (known ? '' : ' <span class="zc-no-def">(kein Bit)</span>') +
-      '</span>' +
-    '</div>';
-  }
-
-  html += '</div>';
-  if (!shown) html = '<div class="zc-empty">No entries match the current filter.</div>';
-  document.getElementById('zc-out').innerHTML = html;
-}
-
-function zcRenderDataGrid() {
-  // Kompaktes Raster: nur Data1..DataN als Kaestchen.
-  // gruen = vorhanden (Bit=1), grau = nicht vorhanden (Bit=0).
-  var html = '<div class="zc-dgrid">';
-  var shown = 0;
-  var q = zcSearchTerm();
-
-  // Feldnamen je DataN zusammenfassen, damit die Suche nach Namen auch
-  // im Raster (das nur Nummern zeigt) das richtige Kaestchen trifft.
-  var nameByN = {};
-  if (q) {
-    for (var di = 0; di < DATACONFIG_DEFS.length; di++) {
-      var d = DATACONFIG_DEFS[di];
-      nameByN[d.n] = (nameByN[d.n] || '') + ' ' + d.name;
-    }
-  }
-
-  for (var n = 1; n <= zcBits.length; n++) {
-    var isOn = (zcBits[n - 1] === 1);
-
-    if (zcCurFilter === 'on'  && !isOn) continue;
-    if (zcCurFilter === 'off' &&  isOn) continue;
-
-    if (q) {
-      var hay = ('data' + n + ' ' + n + ' ' + (nameByN[n] || '')).toLowerCase();
-      if (hay.indexOf(q) === -1) continue;
-    }
-    shown++;
-
-    html += '<div class="zc-dcell zc-clickable ' + (isOn ? 'on' : 'off') + '" onclick="zcToggleBit(' + n + ')" title="Data' + n + ': ' + (isOn ? 'vorhanden' : 'nicht vorhanden') + ' – klicken zum Umschalten">' +
-      '<span class="dn">' + n + '</span>' +
-    '</div>';
-  }
-
-  html += '</div>';
-  if (!shown) html = '<div class="zc-empty">No entries match the current filter.</div>';
-  document.getElementById('zc-out').innerHTML = html;
-}
-
-/* ── CHECKTMR Decoder ──
-   Portierung des CHECKTMR/parseQR-Decoders. Liefert eine farbige
-   Ergebnisliste (gruen = ok, rot = Problem). Ohne Kollisionsframe-Zweitfeld. */
-function zcParseCheckTmr(input) {
-  var G = function(t) { return '<span style="color:var(--green);font-weight:700">' + t + '</span>'; };
-  var R = function(t) { return '<span style="color:var(--red);font-weight:700">' + t + '</span>'; };
-
-  var parts = input.split('=');
-  if (parts.length !== 2) {
-    return '<div class="zc-error">Error: Invalid QR data format! Erwartet: $QR:CHECKTMR=…</div>';
-  }
-  var p = parts[1].trim().toUpperCase().replace(/\s+/g, '');
-
-  // Firmware
-  var firstTachover  = parseInt(p.substring(0, 1), 16);
-  var secondTachover = parseInt(p.substring(1, 2), 16);
-  var thirdTachover  = parseInt(p.substring(2, 4), 16);
-  var fourthTachover = parseInt(p.substring(4, 6), 16);
-
-  // Hardware
-  var hardwareVersion = p.substring(6, 8).substring(0, 1) + '.' + p.substring(6, 8).substring(1, 2);
-
-  // Seriennummer (Little-Endian)
-  var serialNumber = parseInt((p.substring(14, 16) + p.substring(12, 14) + p.substring(10, 12) + p.substring(8, 10)), 16);
-
-  // INF, INF2
-  var INF  = parseInt(p.substring(18, 20), 16).toString(2).padStart(8, '0');
-  var INF2 = parseInt(p.substring(20, 22), 16).toString(2).padStart(8, '0');
-
-  var canBusActivity = '';
-  var ab = INF.substring(6, 8);
-  if (ab === '00') canBusActivity = R('CAN-Bus im Sleep-Modus (inaktiv)');
-  else if (ab === '01') canBusActivity = G('CAN-Bus aktiv');
-  else if (ab === '10') canBusActivity = R('CAN-Bus Fehler (ungueltige Verbindung)');
-  else if (ab === '11') canBusActivity = R('CAN-Bus nicht verwendet');
-
-  var canBusLabel = (firstTachover === 2) ? 'CAN-Bus Aktivitaet: ' : 'CAN-Bus Aktivitaet (orange): ';
-
-  var carIgnition = '';
-  var ig = INF.substring(4, 6);
-  if (ig === '00') carIgnition = R('Zuendung aus');
-  else if (ig === '01') carIgnition = G('Zuendung ein');
-  else if (ig === '11') carIgnition = G('Information nicht verfuegbar');
-  else if (ig === '10') carIgnition = R('Fehler am CAN-Bus');
-
-  var engineStatus = '';
-  var en = INF.substring(2, 4);
-  if (en === '00') engineStatus = G('Motor aus');
-  else if (en === '01') engineStatus = G('Motor ein');
-  else if (en === '11') engineStatus = G('Information nicht verfuegbar');
-  else if (en === '10') engineStatus = R('Fehler am CAN-Bus');
-
-  var isB3 = (p.substring(24, 26) === 'B3');
-
-  var remoteDownload = '';
-  var rd = INF.substring(0, 2);
-  if (isB3) {
-    if (rd === '00') remoteDownload = R('CAN-Bus im Sleep-Modus');
-    else if (rd === '01') remoteDownload = G('CAN-Bus aktiv');
-    else if (rd === '11') remoteDownload = R('CAN-Bus nicht verwendet');
-    else if (rd === '10') remoteDownload = R('CAN-Bus Fehler');
-  } else {
-    if (rd === '00') remoteDownload = R('Funktion aus');
-    else if (rd === '01') remoteDownload = G('Funktion ein');
-    else if (rd === '11') remoteDownload = R('noch nicht bestimmt');
-    else if (rd === '10') remoteDownload = R('unbekannte Antwort');
-  }
-
-  var d8BusActivity = '';
-  var d8 = INF2.substring(6, 8);
-  if (d8 === '00') d8BusActivity = R('D8-Bus Sleep-Modus (inaktiv)');
-  else if (d8 === '01') d8BusActivity = G('D8-Bus aktiv');
-  else if (d8 === '10') d8BusActivity = R('Kommunikationsfehler oder getrennt');
-  else if (d8 === '11') d8BusActivity = R('Information noch nicht verfuegbar');
-
-  var tachoOnline = '';
-  var to = INF2.substring(4, 6);
-  if (to === '00') tachoOnline = R('keine Kommunikation mit Tachograph');
-  else if (to === '01') tachoOnline = G('Tachograph online');
-  else if (to === '10') tachoOnline = R('Fehler');
-  else if (to === '11') tachoOnline = R('Information nicht verfuegbar (Sleep/Fehler)');
-  else tachoOnline = R('unbekannte Antwort');
-
-  var testStatus = '';
-  if (isB3) {
-    var ts = INF2.substring(2, 4);
-    if (ts === '00') testStatus = R('Funktion aus');
-    else if (ts === '01') testStatus = G('Funktion ein');
-    else if (ts === '10') testStatus = R('Kommunikationsfehler');
-    else if (ts === '11') testStatus = R('Tachograph-Kommunikation mit aktueller Konfiguration nicht unterstuetzt');
-  } else {
-    var ts4 = INF2.substring(0, 4);
-    if (ts4 === '0000') testStatus = G('kein Test (Abwaertskompatibilitaet)');
-    else if (ts4 === '0001') testStatus = G('OK. Nachrichten werden auf dem CAN-Bus empfangen');
-    else if (ts4 === '0010') testStatus = G('OK. Selbsttest des CAN-Bus erfolgreich');
-    else if (ts4 === '0100') testStatus = R('Fehler, CAN-Bus im rezessiven Zustand');
-    else if (ts4 === '0101') testStatus = R('Fehler, CAN-Bus im dominanten Zustand');
-    else testStatus = R('unbekannte Antwort');
-  }
-
-  // Tachograph-Hersteller
-  var tp = p.substring(22, 24);
-  var tachographProducer = '';
-  if (tp === '00') tachographProducer = 'unbekannt';
-  else if (tp === '01') tachographProducer = 'VDO/Siemens/Continental';
-  else if (tp === '02') tachographProducer = 'Efas';
-  else if (tp === '03') tachographProducer = 'Stoneridge';
-  else if (tp === '04') tachographProducer = 'Actia';
-  else if (tp === '80') tachographProducer = 'Verbindungsfehler am D8-Draht';
-  else if (tp === '81') tachographProducer = 'Format „2400" Analog-Tachograph nicht unterstuetzt (nur RTC)';
-  else tachographProducer = 'unbekannte Antwort';
-
-  // Tachograph-Modell (ASCII aus Hex), Trailing-Nullbytes entfernen
-  var modelHex = isB3 ? p.substring(26) : p.substring(24);
-  var model = '';
-  for (var i = 0; i + 1 < modelHex.length; i += 2) {
-    var code = parseInt(modelHex.substr(i, 2), 16);
-    if (code === 0) continue;
-    if (!isNaN(code)) model += String.fromCharCode(code);
-  }
-  model = model.replace(/\0+$/, '').trim();
-
-  var rows = [];
-  rows.push('Firmware-Version: ' + firstTachover + '.' + secondTachover + '.' + thirdTachover + '.' + fourthTachover);
-  rows.push('Hardware-Version: ' + hardwareVersion);
-  rows.push('Seriennummer: ' + serialNumber);
-  rows.push('Tachograph-Hersteller: ' + tachographProducer);
-  rows.push('Tachograph-Modell: ' + (model || '—'));
-  rows.push('<br>' + canBusLabel + canBusActivity);
-  rows.push('Zuendung: ' + carIgnition);
-  rows.push('Motorstatus: ' + engineStatus);
-  if (isB3) {
-    rows.push('CAN-Bus 2 Aktivitaet (gruen): ' + remoteDownload);
-    rows.push('Remote Download: ' + testStatus);
-  } else {
-    rows.push('Remote Download: ' + remoteDownload);
-  }
-  rows.push('D8-Bus Aktivitaet: ' + d8BusActivity);
-  rows.push('Tachograph online auf CAN-Bus: ' + tachoOnline);
-
-  return '<div class="zc-ctmr">' + rows.join('<br>') + '</div>';
 }
 
 /* ════════════════════════════════════════════════════════════════
@@ -1693,6 +1296,7 @@ function readFileBuf(f) {
     fr.readAsArrayBuffer(f);
   });
 }
+
 </script>
 </body>
 </html>
