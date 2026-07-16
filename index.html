@@ -356,9 +356,44 @@
     border: 1px solid var(--border); border-radius: 2px;
   }
 
+  .zc-search-row { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+  .zc-search {
+    flex: 1; padding: 8px 14px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
+    color: var(--text); font-family: 'DM Mono', 'Courier New', monospace; font-size: 0.74rem;
+    transition: border-color 0.15s;
+  }
+  .zc-search:focus { outline: none; border-color: var(--accent); }
+  .zc-search::placeholder { color: var(--muted); }
+
+  .zc-grid.zc-grid-cols {
+    display: block; column-count: 2; column-gap: 6px;
+  }
+  .zc-grid.zc-grid-cols .zc-bit { break-inside: avoid; margin-bottom: 6px; }
+  .zc-grid.zc-grid-cols .zc-desc { white-space: normal; overflow-wrap: anywhere; word-break: break-word; }
+
+  .zc-clickable { cursor: pointer; }
+  .zc-bit.zc-clickable:hover { border-color: var(--accent); }
+  .zc-dcell.zc-clickable:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+  /* DATACONFIG kompaktes Raster */
+  .zc-dgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(58px, 1fr)); gap: 6px; }
+  .zc-dcell {
+    display: flex; align-items: center; justify-content: center;
+    padding: 12px 4px; border-radius: 3px; border: 1px solid var(--border);
+    background: var(--surface); transition: transform 0.1s;
+  }
+  .zc-dcell:hover { transform: translateY(-1px); }
+  .zc-dcell .dn { font-family: 'Syne', Arial, sans-serif; font-weight: 800; font-size: 1rem; }
+  .zc-dcell.on  { background: rgba(68,255,136,0.12); border-color: rgba(68,255,136,0.4); }
+  .zc-dcell.on  .dn { color: var(--green); }
+  .zc-dcell.off { background: var(--surface); border-color: var(--border); }
+  .zc-dcell.off .dn { color: var(--text); }
+
   @media (max-width: 600px) {
     .summary-grid { grid-template-columns: repeat(2,1fr); }
     .zc-grid { grid-template-columns: 1fr; }
+    .zc-grid.zc-grid-cols { column-count: 1; }
   }
   /* ── KM-Pruefung Option ── */
   .pruef-opt {
@@ -441,16 +476,26 @@
 
     <div class="zc-input-row">
       <textarea class="zc-textarea" id="zc-input" rows="3"
-        placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2 or $QR:CHECKTMR string here…"></textarea>
+        placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG or $QR:CHECKTMR string here…"></textarea>
       <button class="btn-run" style="flex-shrink:0" onclick="zcParse()">▶ Decode</button>
     </div>
 
 
 
+    <div id="zc-dcview-row" class="zc-filter-row" style="display:none">
+      <button class="zc-fbtn active" id="zc-dc-full" onclick="zcSetDcView('full')">Gesamt</button>
+      <button class="zc-fbtn" id="zc-dc-grid" onclick="zcSetDcView('grid')">Data 1–99</button>
+    </div>
+
     <div id="zc-filter-row" class="zc-filter-row" style="display:none">
       <button class="zc-fbtn active" id="zc-f-all" onclick="zcFilter('all')">All</button>
       <button class="zc-fbtn" id="zc-f-on"  onclick="zcFilter('on')"><span id="zc-f-on-label">Active only</span></button>
       <button class="zc-fbtn" id="zc-f-off" onclick="zcFilter('off')"><span id="zc-f-off-label">Inactive only</span></button>
+    </div>
+
+    <div id="zc-search-row" class="zc-search-row" style="display:none">
+      <input type="text" id="zc-search" class="zc-search" placeholder="Suchen (Name, Beschreibung oder Nummer)…" oninput="zcRender()">
+      <button class="zc-fbtn" id="zc-search-clear" onclick="zcClearSearch()" title="Suche loeschen">✕</button>
     </div>
 
     <div id="zc-out"></div>
@@ -1065,17 +1110,61 @@ var ZV2_DEFS = {
   23: 'Dedicated customer feature'
 };
 
+var DATACONFIG_DEFS = [
+  {n:1,name:'Longitude'}, {n:2,name:'Latitude'}, {n:3,name:'Heading'}, {n:4,name:'Satellite'},
+  {n:5,name:'GSM_signal'}, {n:6,name:'Altitude'}, {n:7,name:'GSM_operator'}, {n:8,name:'Inputs'},
+  {n:9,name:'Inputs2'}, {n:10,name:'Outputs'}, {n:11,name:'VoltageAnalog1'}, {n:12,name:'VoltageAnalog2'},
+  {n:13,name:'VoltageAnalog3'}, {n:14,name:'VoltageAnalog4'}, {n:15,name:'VoltageAnalog6'}, {n:16,name:'SpeedGPS'},
+  {n:17,name:'Vehicle_speed'}, {n:18,name:'MileageGPS'}, {n:19,name:'Total_distance'}, {n:20,name:'Total_fuel'},
+  {n:21,name:'Total_idle_fuel'}, {n:22,name:'Fuel_level_percents'}, {n:23,name:'Fuel_level_litres'}, {n:24,name:'Fuel_Flag'},
+  {n:25,name:'Fuel_consump'}, {n:26,name:'Accelerator'}, {n:27,name:'Engine_speed'}, {n:28,name:'Engine_temperature'},
+  {n:29,name:'Engine_hours'}, {n:30,name:'Engine_idle_time'}, {n:31,name:'Oil_temperature'}, {n:32,name:'Hydraulic_oil_temperature'},
+  {n:33,name:'Tachograph'}, {n:34,name:'Axleweight1'}, {n:35,name:'Axleweight2'}, {n:36,name:'Axleweight3'},
+  {n:37,name:'Axleweight4'}, {n:38,name:'Axleweight5'}, {n:39,name:'axle_brutto'}, {n:40,name:'Indicators_C'},
+  {n:41,name:'1WireTemp_1'}, {n:41,name:'WireCode_1'}, {n:41,name:'1WireTemp_2'}, {n:41,name:'WireCode_2'},
+  {n:41,name:'1WireTemp_3'}, {n:41,name:'WireCode_3'}, {n:41,name:'1WireTemp_4'}, {n:41,name:'Wire Code_4'},
+  {n:41,name:'1WireTemp_5'}, {n:41,name:'WireCode_5'}, {n:41,name:'1WireTemp_6'}, {n:41,name:'WireCode_6'},
+  {n:42,name:'Rapid_pedal_pressure'}, {n:43,name:'Rapid_accelerations'}, {n:44,name:'Rapid_brakings'}, {n:45,name:'Engine_speed_overspeed_counter'},
+  {n:46,name:'RANGE'}, {n:47,name:'Drive_time_over_rpmlimit'}, {n:48,name:'Drive_time_over_speedlimit'}, {n:49,name:'Driver1_IDcard_tacho'},
+  {n:50,name:'Driver2_IDcard_tacho'}, {n:51,name:'DriverCode'}, {n:52,name:'3DX'}, {n:52,name:'3DY'},
+  {n:52,name:'3DZ'}, {n:53,name:'ecospeed_1'}, {n:53,name:'ecospeed_2'}, {n:53,name:'ecospeed_3'},
+  {n:53,name:'ecospeed_4'}, {n:53,name:'ecospeed_5'}, {n:53,name:'ecospeed_6'}, {n:53,name:'ecoRPM_1'},
+  {n:53,name:'ecoRPM_2'}, {n:53,name:'ecoRPM_3'}, {n:53,name:'ecoRPM_4'}, {n:53,name:'ecoRPM_5'},
+  {n:53,name:'ecoRPM_6'}, {n:53,name:'eco_acc_1'}, {n:53,name:'eco_acc_2'}, {n:53,name:'eco_acc_3'},
+  {n:53,name:'eco_acc_4'}, {n:53,name:'eco_acc_5'}, {n:53,name:'eco_acc_6'}, {n:53,name:'eco_braking_1'},
+  {n:53,name:'eco_braking_2'}, {n:53,name:'eco_braking_3'}, {n:53,name:'eco_braking_4'}, {n:53,name:'eco_braking_5'},
+  {n:53,name:'eco_braking_6'}, {n:53,name:'eco_pedalpress_1'}, {n:53,name:'eco_pedalpress_2'}, {n:53,name:'eco_pedalpress_3'},
+  {n:53,name:'eco_pedalpress_4'}, {n:53,name:'eco_pedalpress_5'}, {n:53,name:'eco_pedalpress_6'}, {n:53,name:'Total_number_of_brakeapplies'},
+  {n:53,name:'Pedal_braking_factor'}, {n:53,name:'Engine_braking_factor'}, {n:53,name:'Total_number_of_accelerator_kick_downs'}, {n:53,name:'Total_driving_time_with_accelerator_kick_down'},
+  {n:53,name:'Total_driving_time_when_cruise_control_is_on'}, {n:54,name:'Dedicated customer feature'}, {n:55,name:'adblue'}, {n:56,name:'engine_oil_level'},
+  {n:57,name:'alternative_gasoline'}, {n:58,name:'engine_torque'}, {n:59,name:'distance_to_service'}, {n:60,name:'coasting'},
+  {n:61,name:'pto_duration'}, {n:62,name:'pto_fuel_consumption'}, {n:63,name:'clutch_presses'}, {n:64,name:'retarder_usage'},
+  {n:65,name:'R2'}, {n:65,name:'R3'}, {n:65,name:'R4'}, {n:65,name:'R5'},
+  {n:65,name:'R6'}, {n:66,name:'R7'}, {n:67,name:'beacon1'}, {n:67,name:'beacon2'},
+  {n:68,name:'Dedicated customer feature'}, {n:69,name:'vin_trailer'}, {n:70,name:'battery_temperature'}, {n:71,name:'total_driving_time_in_effective_range'},
+  {n:72,name:'total_engine_cold_running_time'}, {n:73,name:'engine_load'}, {n:74,name:'gearbox'}, {n:75,name:'power_mode'},
+  {n:76,name:'trailer_gross_weight'}, {n:77,name:'dpf_soot_level'}, {n:78,name:'passenger_seats_and_seatbelts'}, {n:79,name:'driving_time'},
+  {n:80,name:'turbo_pressure'}, {n:81,name:'ambient_temperature'}, {n:82,name:'brake_pedal_pressure'}, {n:83,name:'engine_all_starts_count'},
+  {n:84,name:'engine_cold_starts_count'}, {n:85,name:'engine_starts_by_ignition_count'}, {n:86,name:'handbrake_applies_on_the_ride'}, {n:87,name:'battery_instantaneous_voltage'},
+  {n:88,name:'electric_car\'s_battery_instantaneous_current'}, {n:89,name:'electric_car\'s_battery_instantaneous_power'}, {n:90,name:'electric_car\'s_battery_charging_current'}, {n:91,name:'total_electric_engine_running_time'},
+  {n:92,name:'electric_car\'s_battery_charging_status'}, {n:93,name:'remaining_charge_time'}, {n:94,name:'electric_car\'s_total_energy_recuperated'}, {n:95,name:'electric_car\'s_total_energy_used_while_driving'},
+  {n:96,name:'electric_car\'s_total_energy_charged'}, {n:97,name:'electric_car\'s_total_effective_energy_used'}, {n:98,name:'electric_car\'s_battery_state_of_health'}, {n:99,name:'electric_car\'s_battery_charging_cycles_count'},
+];
+
 var zcBits = [];
 var zcMode = 'config'; // 'config' | 'value' | 'value2'
 var zcCurFilter = 'all';
+var zcDcView = 'full'; // 'full' | 'grid' (nur DATACONFIG)
 
 function zcParse() {
   var raw = document.getElementById('zc-input').value.trim();
   var out = document.getElementById('zc-out');
 
   if (!raw) {
-    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2 or $QR:CHECKTMR string above and press Decode.</div>';
+    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG or $QR:CHECKTMR string above and press Decode.</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
+    document.getElementById('zc-dcview-row').style.display = 'none';
+    document.getElementById('zc-search-row').style.display = 'none';
     return;
   }
 
@@ -1083,40 +1172,95 @@ function zcParse() {
   if (isCheckTmr) {
     zcMode = 'checktmr';
     document.getElementById('zc-filter-row').style.display = 'none';
+    document.getElementById('zc-dcview-row').style.display = 'none';
+    document.getElementById('zc-search-row').style.display = 'none';
     out.innerHTML = zcParseCheckTmr(raw);
     return;
   }
 
-  var isValue2  = /ZVALUE2/i.test(raw);
-  var isValue   = !isValue2 && /ZVALUE/i.test(raw);
-  var isConfig4 = /ZCONFIG4/i.test(raw);
-  var isConfig3 = !isConfig4 && /ZCONFIG3/i.test(raw);
-  var isConfig2 = !isConfig4 && !isConfig3 && /ZCONFIG2/i.test(raw);
-  zcMode = isValue2 ? 'value2' : (isValue ? 'value' : (isConfig4 ? 'config4' : (isConfig3 ? 'config3' : (isConfig2 ? 'config2' : 'config'))));
+  var isDataConfig = /DATACONFIG/i.test(raw);
+  var isValue2  = !isDataConfig && /ZVALUE2/i.test(raw);
+  var isValue   = !isDataConfig && !isValue2 && /ZVALUE/i.test(raw);
+  var isConfig4 = !isDataConfig && /ZCONFIG4/i.test(raw);
+  var isConfig3 = !isDataConfig && !isConfig4 && /ZCONFIG3/i.test(raw);
+  var isConfig2 = !isDataConfig && !isConfig4 && !isConfig3 && /ZCONFIG2/i.test(raw);
+  zcMode = isDataConfig ? 'dataconfig' : (isValue2 ? 'value2' : (isValue ? 'value' : (isConfig4 ? 'config4' : (isConfig3 ? 'config3' : (isConfig2 ? 'config2' : 'config')))));
 
-  var m = raw.match(/Z(?:VALUE2|VALUE|CONFIG4|CONFIG3|CONFIG2|CONFIG)\s*=\s*([\d,\s]+)/i);
-  var seq = m ? m[1] : raw;
-  zcBits = seq.split(',').map(function(s) { return parseInt(s.trim(), 10); }).filter(function(b) { return !isNaN(b); });
+  if (zcMode === 'dataconfig') {
+    var dm = raw.match(/DATACONFIG\s*=\s*(?:[0-9A-F]+\s*,\s*)?([01\s]+)/i);
+    var dseq = dm ? dm[1] : raw;
+    zcBits = dseq.replace(/\s+/g, '').split('').map(function(c) { return parseInt(c, 10); }).filter(function(b) { return !isNaN(b); });
+  } else {
+    var m = raw.match(/Z(?:VALUE2|VALUE|CONFIG4|CONFIG3|CONFIG2|CONFIG)\s*=\s*([\d,\s]+)/i);
+    var seq = m ? m[1] : raw;
+    zcBits = seq.split(',').map(function(s) { return parseInt(s.trim(), 10); }).filter(function(b) { return !isNaN(b); });
+  }
 
   if (!zcBits.length) {
-    out.innerHTML = '<div class="zc-error">No valid string found. Expected: $QR:ZCONFIG=\u2026 / $QR:ZCONFIG2=\u2026 / $QR:ZCONFIG3=\u2026 / $QR:ZCONFIG4=\u2026 / $QR:ZVALUE=\u2026 / $QR:ZVALUE2=\u2026</div>';
+    out.innerHTML = '<div class="zc-error">No valid string found. Expected: $QR:ZCONFIG=\u2026 / $QR:ZVALUE=\u2026 / $QR:DATACONFIG=\u2026 / $QR:CHECKTMR=\u2026</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
+    document.getElementById('zc-dcview-row').style.display = 'none';
+    document.getElementById('zc-search-row').style.display = 'none';
     return;
   }
 
   if (zcMode === 'value' || zcMode === 'value2') {
     document.getElementById('zc-f-on-label').textContent  = 'Non-zero only';
     document.getElementById('zc-f-off-label').textContent = 'Zero only';
+  } else if (zcMode === 'dataconfig') {
+    document.getElementById('zc-f-on-label').textContent  = 'Vorhanden';
+    document.getElementById('zc-f-off-label').textContent = 'Nicht vorhanden';
   } else {
     document.getElementById('zc-f-on-label').textContent  = 'Active only';
     document.getElementById('zc-f-off-label').textContent = 'Inactive only';
   }
 
+  // DATACONFIG-Umschalter und Suche nur bei DATACONFIG zeigen
+  if (zcMode === 'dataconfig') {
+    document.getElementById('zc-dcview-row').style.display = 'flex';
+    zcDcView = 'full';
+    document.getElementById('zc-dc-full').classList.add('active');
+    document.getElementById('zc-dc-grid').classList.remove('active');
+  } else {
+    document.getElementById('zc-dcview-row').style.display = 'none';
+  }
+
   document.getElementById('zc-filter-row').style.display = 'flex';
+  document.getElementById('zc-search-row').style.display = 'flex';
+  document.getElementById('zc-search').value = '';
   zcCurFilter = 'all';
   ['all','on','off'].forEach(function(x) {
     document.getElementById('zc-f-' + x).classList.toggle('active', x === 'all');
   });
+  zcRender();
+}
+
+function zcSetDcView(v) {
+  zcDcView = v;
+  document.getElementById('zc-dc-full').classList.toggle('active', v === 'full');
+  document.getElementById('zc-dc-grid').classList.toggle('active', v === 'grid');
+  zcRender();
+}
+
+function zcSearchTerm() {
+  var el = document.getElementById('zc-search');
+  return el ? el.value.trim().toLowerCase() : '';
+}
+
+function zcClearSearch() {
+  var el = document.getElementById('zc-search');
+  if (el) el.value = '';
+  zcRender();
+}
+
+function zcToggleBit(n) {
+  if (zcMode !== 'dataconfig') return;
+  var idx = n - 1;
+  if (idx < 0 || idx >= zcBits.length) return;
+  zcBits[idx] = (zcBits[idx] === 1) ? 0 : 1;
+  var ta = document.getElementById('zc-input');
+  var bitStr = zcBits.join('');
+  ta.value = '$AL+DATACONFIG=0000,' + bitStr;
   zcRender();
 }
 
@@ -1129,7 +1273,9 @@ function zcFilter(f) {
 }
 
 function zcRender() {
+  if (zcMode === 'dataconfig') { zcRenderDataConfig(); return; }
   var defs = zcMode === 'value2' ? ZV2_DEFS : (zcMode === 'value' ? ZV_DEFS : (zcMode === 'config4' ? ZC4_DEFS : (zcMode === 'config3' ? ZC3_DEFS : (zcMode === 'config2' ? ZC2_DEFS : ZC_DEFS))));
+  var q = zcSearchTerm();
   var html = '<div class="zc-grid">';
   var shown = 0;
 
@@ -1140,9 +1286,14 @@ function zcRender() {
 
     if (zcCurFilter === 'on'  && !isOn) continue;
     if (zcCurFilter === 'off' &&  isOn) continue;
-    shown++;
 
     var desc = defs[num];
+
+    if (q) {
+      var hay = (String(num) + ' ' + (desc || '')).toLowerCase();
+      if (hay.indexOf(q) === -1) continue;
+    }
+    shown++;
 
     if (zcMode === 'value' || zcMode === 'value2') {
       var pillCls  = isOn ? 'on' : 'off';
@@ -1303,6 +1454,89 @@ function zcParseCheckTmr(input) {
   rows.push('Tachograph online auf CAN-Bus: ' + tachoOnline);
 
   return '<div class="zc-ctmr">' + rows.join('<br>') + '</div>';
+}
+
+function zcEsc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+    return { '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c];
+  });
+}
+
+function zcRenderDataConfig() {
+  if (zcDcView === 'grid') { zcRenderDataGrid(); return; }
+  // Feldliste: eine Bit-Position (DataN) kann mehrere Feldnamen haben ->
+  // jeder Feldname als eigene Zeile. Bit=1 vorhanden (gruen), Bit=0 nicht.
+  var html = '<div class="zc-grid zc-grid-cols">';
+  var shown = 0;
+  var q = zcSearchTerm();
+
+  for (var i = 0; i < DATACONFIG_DEFS.length; i++) {
+    var def = DATACONFIG_DEFS[i];
+    var bit = zcBits[def.n - 1];
+    var isOn = (bit === 1);
+    var known = (typeof bit !== 'undefined');
+
+    if (zcCurFilter === 'on'  && !isOn) continue;
+    if (zcCurFilter === 'off' &&  isOn) continue;
+
+    if (q) {
+      var hay = ('data' + def.n + ' ' + def.n + ' ' + def.name).toLowerCase();
+      if (hay.indexOf(q) === -1) continue;
+    }
+    shown++;
+
+    var pillCls  = isOn ? 'on' : 'off';
+    var pillText = isOn ? 'vorhanden' : 'nicht vorh.';
+
+    html += '<div class="zc-bit zc-clickable' + (isOn ? ' is-on' : '') + '"' +
+      (known ? ' onclick="zcToggleBit(' + def.n + ')" title="Klicken zum Umschalten"' : '') + '>' +
+      '<span class="zc-bit-num' + (isOn ? ' on' : '') + '" style="min-width:48px;white-space:nowrap">Data' + def.n + '</span>' +
+      '<span class="zc-pill ' + pillCls + '" style="min-width:78px;text-align:center">' + pillText + '</span>' +
+      '<span class="zc-desc' + (isOn ? ' on' : '') + '" style="color:var(--text)">[' + zcEsc(def.name) + ']' +
+        (known ? '' : ' <span class="zc-no-def">(kein Bit)</span>') +
+      '</span>' +
+    '</div>';
+  }
+
+  html += '</div>';
+  if (!shown) html = '<div class="zc-empty">No entries match the current filter.</div>';
+  document.getElementById('zc-out').innerHTML = html;
+}
+
+function zcRenderDataGrid() {
+  // Kompaktes Raster: nur Data1..DataN als Kaestchen. gruen=vorhanden, grau=nicht.
+  var html = '<div class="zc-dgrid">';
+  var shown = 0;
+  var q = zcSearchTerm();
+
+  var nameByN = {};
+  if (q) {
+    for (var di = 0; di < DATACONFIG_DEFS.length; di++) {
+      var d = DATACONFIG_DEFS[di];
+      nameByN[d.n] = (nameByN[d.n] || '') + ' ' + d.name;
+    }
+  }
+
+  for (var n = 1; n <= zcBits.length; n++) {
+    var isOn = (zcBits[n - 1] === 1);
+
+    if (zcCurFilter === 'on'  && !isOn) continue;
+    if (zcCurFilter === 'off' &&  isOn) continue;
+
+    if (q) {
+      var hay = ('data' + n + ' ' + n + ' ' + (nameByN[n] || '')).toLowerCase();
+      if (hay.indexOf(q) === -1) continue;
+    }
+    shown++;
+
+    html += '<div class="zc-dcell zc-clickable ' + (isOn ? 'on' : 'off') + '" onclick="zcToggleBit(' + n + ')" title="Data' + n + ': ' + (isOn ? 'vorhanden' : 'nicht vorhanden') + ' – klicken zum Umschalten">' +
+      '<span class="dn">' + n + '</span>' +
+    '</div>';
+  }
+
+  html += '</div>';
+  if (!shown) html = '<div class="zc-empty">No entries match the current filter.</div>';
+  document.getElementById('zc-out').innerHTML = html;
 }
 
 /* ════════════════════════════════════════════════════════════════
