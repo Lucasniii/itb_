@@ -529,7 +529,7 @@
 
     <div class="zc-input-row">
       <textarea class="zc-textarea" id="zc-input" rows="3"
-        placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG, $QR:CHECKTMR or EVENT2 string here\u2026"></textarea>
+        placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG, $QR:CHECKTMR or EVENT string here…"></textarea>
       <button class="btn-run" style="flex-shrink:0" onclick="zcParse()">▶ Decode</button>
     </div>
 
@@ -1260,10 +1260,10 @@ var DATACONFIG_DEFS = [
   {n:96,name:'electric_car\'s_total_energy_charged'}, {n:97,name:'electric_car\'s_total_effective_energy_used'}, {n:98,name:'electric_car\'s_battery_state_of_health'}, {n:99,name:'electric_car\'s_battery_charging_cycles_count'},
 ];
 
-/* ── EVENT2 / EVENTID [Report ID] codes ──
+/* ── EVENT / EVENTID [Report ID] codes ──
    Quelle: S/FM Technical Documentation, "EVENTID [Report ID] codes description".
-   EVENT2 (AUTOOUTS-Feld) referenziert dieselben EVENTID-Codes. */
-var EVENT2_DEFS = {
+   EVENT (AUTOOUTS-Feld) referenziert dieselben EVENTID-Codes. */
+var EVENT_DEFS = {
   0:   'Answer to GETPOSITION query',
   1:   'Telemetry data from archive',
   2:   'Tracking telemetry',
@@ -1457,7 +1457,7 @@ function zcParse() {
   var out = document.getElementById('zc-out');
 
   if (!raw) {
-    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG, $QR:CHECKTMR or EVENT2 string above and press Decode.</div>';
+    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG, $QR:CHECKTMR or EVENT string above and press Decode.</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
     document.getElementById('zc-dcview-row').style.display = 'none';
     document.getElementById('zc-search-row').style.display = 'none';
@@ -1474,13 +1474,13 @@ function zcParse() {
     return;
   }
 
-  var isEvent2 = /EVENT2/i.test(raw);
-  if (isEvent2) {
+  var isEvent = /EVENT/i.test(raw);
+  if (isEvent) {
     zcMode = 'event2';
     document.getElementById('zc-filter-row').style.display = 'none';
     document.getElementById('zc-dcview-row').style.display = 'none';
     document.getElementById('zc-search-row').style.display = 'none';
-    out.innerHTML = zcParseEvent2(raw);
+    out.innerHTML = zcParseEvent(raw);
     return;
   }
 
@@ -1503,7 +1503,7 @@ function zcParse() {
   }
 
   if (!zcBits.length) {
-    out.innerHTML = '<div class="zc-error">No valid string found. Expected: $QR:ZCONFIG=\u2026 / $QR:ZVALUE=\u2026 / $QR:DATACONFIG=\u2026 / $QR:CHECKTMR=\u2026 / EVENT2=\u2026</div>';
+    out.innerHTML = '<div class="zc-error">No valid string found. Expected: $QR:ZCONFIG=\u2026 / $QR:ZVALUE=\u2026 / $QR:DATACONFIG=\u2026 / $QR:CHECKTMR=\u2026 / EVENT=\u2026</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
     document.getElementById('zc-dcview-row').style.display = 'none';
     document.getElementById('zc-search-row').style.display = 'none';
@@ -1761,20 +1761,20 @@ function zcParseCheckTmr(input) {
   return '<div class="zc-ctmr">' + rows.join('<br>') + '</div>';
 }
 
-/* ── EVENT2 Decoder ──
-   Erwartet z. B. "EVENT2=2" oder "EVENT2:2" (mehrere Codes durch Komma
+/* ── EVENT Decoder ──
+   Erwartet z. B. "EVENT=2" oder "EVENT:2" (mehrere Codes durch Komma
    getrennt moeglich) und gibt fuer jeden Code Nummer + Beschreibung aus. */
-function zcParseEvent2(raw) {
-  var em = raw.match(/EVENT2\D*?(\d+(?:\s*,\s*\d+)*)/i);
+function zcParseEvent(raw) {
+  var em = raw.match(/EVENT\D*?(\d+(?:\s*,\s*\d+)*)/i);
   var codes = em ? em[1].split(',').map(function(s) { return parseInt(s.trim(), 10); }).filter(function(n) { return !isNaN(n); }) : [];
 
   if (!codes.length) {
-    return '<div class="zc-error">No valid EVENT2 code found. Expected: EVENT2=&lt;code&gt;</div>';
+    return '<div class="zc-error">No valid EVENT code found. Expected: EVENT=&lt;code&gt;</div>';
   }
 
   var html = '<div class="zc-grid">';
   codes.forEach(function(code) {
-    var desc = EVENT2_DEFS[code];
+    var desc = EVENT_DEFS[code];
     html += '<div class="event-row">' +
       '<span class="event-num">' + code + '</span>' +
       '<span class="event-desc">' + (desc ? zcEsc(desc) : '<span class="zc-no-def">Not defined</span>') + '</span>' +
