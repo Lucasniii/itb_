@@ -359,6 +359,17 @@
     border: 1px solid var(--border); border-radius: 2px;
   }
 
+  .event-row {
+    display: flex; align-items: center;
+    border: 1px solid var(--border); border-radius: 2px; background: var(--surface);
+  }
+  .event-num {
+    flex-shrink: 0; width: 64px; text-align: center;
+    font-family: 'Syne', Arial, sans-serif; font-weight: 800; font-size: 1.05rem; color: var(--accent);
+    padding: 13px 8px; border-right: 1px solid var(--border);
+  }
+  .event-desc { flex: 1; padding: 13px 18px; font-size: 0.8rem; color: var(--text); text-align: center; }
+
   .zc-search-row { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
   .zc-search {
     flex: 1; padding: 8px 14px;
@@ -518,7 +529,7 @@
 
     <div class="zc-input-row">
       <textarea class="zc-textarea" id="zc-input" rows="3"
-        placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG or $QR:CHECKTMR string here…"></textarea>
+        placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG, $QR:CHECKTMR or EVENT2 string here\u2026"></textarea>
       <button class="btn-run" style="flex-shrink:0" onclick="zcParse()">▶ Decode</button>
     </div>
 
@@ -1249,6 +1260,119 @@ var DATACONFIG_DEFS = [
   {n:96,name:'electric_car\'s_total_energy_charged'}, {n:97,name:'electric_car\'s_total_effective_energy_used'}, {n:98,name:'electric_car\'s_battery_state_of_health'}, {n:99,name:'electric_car\'s_battery_charging_cycles_count'},
 ];
 
+/* ── EVENT2 / EVENTID [Report ID] codes ──
+   Quelle: S/FM Technical Documentation, "EVENTID [Report ID] codes description".
+   EVENT2 (AUTOOUTS-Feld) referenziert dieselben EVENTID-Codes. */
+var EVENT2_DEFS = {
+  0:   'Answer to GETPOSITION query',
+  1:   'Telemetry data from archive',
+  2:   'Tracking telemetry',
+  3:   'Timer generated telemetry',
+  8:   'Speed limit exceeded',
+  9:   'Towing start',
+  10:  'Towing stop',
+  11:  'Input 0 (ignition) changed',
+  12:  'Input 1 changed',
+  13:  'Input 2 changed',
+  14:  'Expander Pro Module JP2-1 input changed',
+  15:  'Input 4 changed',
+  16:  'Input 5 / Output 2 changed',
+  17:  'Input 6 changed',
+  18:  'Input 7 changed',
+  19:  'Input 8 changed',
+  21:  'Used DALLAS button is not available on DALLASID list',
+  22:  'iButton read',
+  23:  'iButton detached',
+  24:  'No ACC authorization',
+  25:  'Main power ON (Main power voltage is higher than 5V)',
+  26:  'Delayed ACC authorization',
+  27:  'Authorization expired (Only for DALLAS authorization - end of authorization)',
+  28:  'Not Authorized (Only for DALLAS authorization - ignition on and during 30 second there was no authorization)',
+  29:  'Main power off (Main power voltage is lower than 5V)',
+  32:  'Car towing! Device verifies sum of overloads when ignition is off (3D sensor)',
+  33:  'Accident! Device verifies sum of overloads when ignition is on by use advanced 3D algorithm (3D sensor)',
+  34:  'ALARM! Antenna GPS disconnected',
+  35:  'Frame generated in SLEEPMODE mode according to defined time',
+  36:  'GSM Jamming detected',
+  37:  'GPS Jamming detected (only if L76 GPS version module is on the board)',
+  38:  'Frame generated in SLEEPMODE mode according to 3D overload',
+  47:  'Voltage alarm',
+  49:  'One of the EXPANDER input (-) changed its own status',
+  50:  'Rapid acceleration – acceleration is verifying above threshold when ignition is on (3D sensor)',
+  51:  'Rapid braking – braking is verifying above threshold when ignition is on (3D sensor)',
+  52:  'Rapid turning – turning is verify above threshold when ignition is on (3D sensor)',
+  53:  'Appearance within range or disappearance from the range of a Bluetooth beacon',
+  54:  'Connecting/disconnecting a 1-Wire thermometer',
+  62:  'ECOROLL start',
+  63:  'ECOROLL stop',
+  65:  'Ignition on',
+  66:  'Ignition off',
+  67:  'Engine on',
+  68:  'Engine off',
+  69:  'Reverse gear on',
+  70:  'Reverse gear off',
+  71:  'Tachograph status changed (Driver card, work state, time related states)',
+  72:  'All doors closed (Including trunk)',
+  73:  'Any door opened (First door or trunk is opened)',
+  74:  'Any door changed (Any door or trunk is opened or closed)',
+  75:  'Trunk opened',
+  76:  'Trunk closed',
+  77:  'Central lock locked',
+  78:  'Central lock unlocked',
+  79:  'Driver seat-belt fastened (Indicator off)',
+  80:  'Driver seatbelt unfastened (Indicator on)',
+  81:  'Handbrake pulled-up',
+  82:  'Handbrake released',
+  83:  'Factory alarm status changed (Arming, disarming, triggering etc.)',
+  84:  'Car locked with remote',
+  85:  'Car unlocked with remote',
+  86:  'Driver card inserted into Tachograph',
+  90:  'Hazard lights on',
+  91:  'Hazard lights off',
+  92:  'Speed limit exceeded',
+  93:  'Engine speed limit exceeded',
+  94:  'Rapid acceleration occurred',
+  95:  'Rapid braking occurred',
+  96:  'Drive START',
+  97:  'Drive STOP',
+  98:  'Exceeded accelerator pressure limit',
+  120: 'TMR: Insert/eject drivers\' card',
+  121: 'TMR: Tachograph status changed',
+  122: 'Ferry/train crossing condition (information from tachograph in [inputs2] field)',
+  123: '„out of scope" condition (information from tachograph in [inputs2] field)',
+  127: 'PTO turned on/off',
+  133: 'Check engine indicator on',
+  134: 'Oil pressure indicator on',
+  135: 'Handbrake pulled-up while driving (speed over limit)',
+  136: 'Engine idle start',
+  137: 'Engine idle stop',
+  138: 'Lower engine speed limit exceeded',
+  139: 'Engine speed decreased below upper limit (with 100 rpm hysteresis)',
+  140: 'Engine speed decreased below lower limit (with 100 rpm hysteresis)',
+  168: 'Engine temperature indicator on',
+  169: 'Airbag indicator on',
+  191: 'Barcode reader',
+  195: 'Impulse counting start',
+  196: 'Impulse counting stop',
+  200: 'Output 1 turned on',
+  201: 'Output 2 turned on',
+  202: 'Output 3 turned on',
+  203: 'Output 4 turned on',
+  204: 'Output 5 turned on',
+  205: 'Output 1 turned off',
+  206: 'Output 2 turned off',
+  207: 'Output 3 turned off',
+  208: 'Output 4 turned off',
+  209: 'Output 5 turned off',
+  217: 'Change in the state of the Bluetooth beacon',
+  243: 'Engine speed limit exceeded',
+  245: 'Dedicated customer feature',
+  247: 'Dedicated customer feature',
+  248: 'Dedicated customer feature',
+  768: 'WEBASTO turned on',
+  769: 'WEBASTO turned off'
+};
+
 /* ── Eigene Angaben (Admin-Portal) ──
    Werden lokal im Browser gespeichert und ueberschreiben/ergaenzen die
    fest hinterlegten Beschreibungen im Decoder – z.B. fuer als
@@ -1333,7 +1457,7 @@ function zcParse() {
   var out = document.getElementById('zc-out');
 
   if (!raw) {
-    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG or $QR:CHECKTMR string above and press Decode.</div>';
+    out.innerHTML = '<div class="zc-empty">Paste a $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG, $QR:CHECKTMR or EVENT2 string above and press Decode.</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
     document.getElementById('zc-dcview-row').style.display = 'none';
     document.getElementById('zc-search-row').style.display = 'none';
@@ -1347,6 +1471,16 @@ function zcParse() {
     document.getElementById('zc-dcview-row').style.display = 'none';
     document.getElementById('zc-search-row').style.display = 'none';
     out.innerHTML = zcParseCheckTmr(raw);
+    return;
+  }
+
+  var isEvent2 = /EVENT2/i.test(raw);
+  if (isEvent2) {
+    zcMode = 'event2';
+    document.getElementById('zc-filter-row').style.display = 'none';
+    document.getElementById('zc-dcview-row').style.display = 'none';
+    document.getElementById('zc-search-row').style.display = 'none';
+    out.innerHTML = zcParseEvent2(raw);
     return;
   }
 
@@ -1369,7 +1503,7 @@ function zcParse() {
   }
 
   if (!zcBits.length) {
-    out.innerHTML = '<div class="zc-error">No valid string found. Expected: $QR:ZCONFIG=\u2026 / $QR:ZVALUE=\u2026 / $QR:DATACONFIG=\u2026 / $QR:CHECKTMR=\u2026</div>';
+    out.innerHTML = '<div class="zc-error">No valid string found. Expected: $QR:ZCONFIG=\u2026 / $QR:ZVALUE=\u2026 / $QR:DATACONFIG=\u2026 / $QR:CHECKTMR=\u2026 / EVENT2=\u2026</div>';
     document.getElementById('zc-filter-row').style.display = 'none';
     document.getElementById('zc-dcview-row').style.display = 'none';
     document.getElementById('zc-search-row').style.display = 'none';
@@ -1625,6 +1759,29 @@ function zcParseCheckTmr(input) {
   rows.push('Tachograph online auf CAN-Bus: ' + tachoOnline);
 
   return '<div class="zc-ctmr">' + rows.join('<br>') + '</div>';
+}
+
+/* ── EVENT2 Decoder ──
+   Erwartet z. B. "EVENT2=2" oder "EVENT2:2" (mehrere Codes durch Komma
+   getrennt moeglich) und gibt fuer jeden Code Nummer + Beschreibung aus. */
+function zcParseEvent2(raw) {
+  var em = raw.match(/EVENT2\D*?(\d+(?:\s*,\s*\d+)*)/i);
+  var codes = em ? em[1].split(',').map(function(s) { return parseInt(s.trim(), 10); }).filter(function(n) { return !isNaN(n); }) : [];
+
+  if (!codes.length) {
+    return '<div class="zc-error">No valid EVENT2 code found. Expected: EVENT2=&lt;code&gt;</div>';
+  }
+
+  var html = '<div class="zc-grid">';
+  codes.forEach(function(code) {
+    var desc = EVENT2_DEFS[code];
+    html += '<div class="event-row">' +
+      '<span class="event-num">' + code + '</span>' +
+      '<span class="event-desc">' + (desc ? zcEsc(desc) : '<span class="zc-no-def">Not defined</span>') + '</span>' +
+    '</div>';
+  });
+  html += '</div>';
+  return html;
 }
 
 function zcEsc(s) {
