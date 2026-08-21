@@ -333,6 +333,9 @@
     transition: border-color 0.15s;
   }
   .zc-bit.is-on { border-color: rgba(68,255,136,0.35); background: rgba(68,255,136,0.04); }
+  .zc-bit.is-custom { border-color: rgba(232,255,71,0.4); }
+  .custom-feature { display: block; margin-top: 5px; color: var(--accent); font-weight: 500; }
+  .custom-feature small { color: var(--muted); font-weight: 400; }
   .zc-bit-num {
     font-size: 0.72rem; color: var(--muted); min-width: 26px;
     padding-top: 2px; font-weight: 500;
@@ -402,6 +405,44 @@
   }
   .pruef-opt input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
 
+  /* ── ADMIN PORTAL ── */
+  .admin-wrap { width: 100%; }
+  .admin-layout { display: grid; grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.4fr); gap: 20px; align-items: start; }
+  .admin-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 20px; }
+  .admin-panel h2 { font-family: 'Syne', Arial, sans-serif; font-size: 1rem; letter-spacing: 0.04em; margin-bottom: 16px; }
+  .admin-form { display: grid; gap: 12px; }
+  .admin-field { display: grid; gap: 6px; }
+  .admin-field label { color: var(--muted); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; }
+  .admin-input, .admin-select, .admin-textarea {
+    padding: 9px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 2px;
+    color: var(--text); font-family: 'DM Mono', 'Courier New', monospace; font-size: 0.78rem;
+  }
+  .admin-textarea { resize: vertical; min-height: 76px; line-height: 1.45; }
+  .admin-input:focus, .admin-select:focus, .admin-textarea:focus { outline: none; border-color: var(--accent); }
+  .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
+  .admin-btn { padding: 9px 13px; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 2px; cursor: pointer; font: 700 0.7rem 'Syne', Arial, sans-serif; }
+  .admin-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .admin-btn.primary { background: var(--accent); border-color: var(--accent); color: #000; }
+  .admin-tools { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .admin-feature-list { display: grid; gap: 8px; }
+  .admin-feature { padding: 13px; border: 1px solid var(--border); border-radius: 2px; background: var(--bg); }
+  .admin-feature-head { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  .admin-badge { color: var(--accent); border: 1px solid rgba(232,255,71,0.35); padding: 2px 7px; font-size: 0.65rem; border-radius: 2px; }
+  .admin-customer { font-size: 0.72rem; color: var(--text); }
+  .admin-feature-desc { font-size: 0.75rem; line-height: 1.5; color: var(--text); }
+  .admin-feature-notes { margin-top: 7px; color: var(--muted); font-size: 0.68rem; line-height: 1.5; }
+  .admin-feature-actions { margin-left: auto; display: flex; gap: 5px; }
+  .admin-mini-btn { color: var(--muted); background: transparent; border: 1px solid var(--border); padding: 3px 7px; border-radius: 2px; cursor: pointer; font: 0.65rem 'DM Mono', Arial, sans-serif; }
+  .admin-mini-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .admin-mini-btn.delete:hover { color: var(--red); border-color: var(--red); }
+  .admin-hint { color: var(--muted); font-size: 0.67rem; line-height: 1.5; margin-top: 12px; }
+  .zc-dcell.has-custom { box-shadow: inset 0 0 0 2px var(--accent); }
+
+  @media (max-width: 600px) {
+    .admin-layout { grid-template-columns: 1fr; gap: 14px; }
+    .admin-panel { padding: 14px; }
+  }
+
 </style>
 </head>
 <body>
@@ -414,6 +455,7 @@
   <button class="tab active" data-view="zconfig">Decoder</button>
   <button class="tab" data-view="pruef">KM-Pruefung</button>
   <button class="tab" data-view="merge">PTO-Erkennung</button>
+  <button class="tab" data-view="admin">Admin</button>
 </nav>
 
 <!-- ════════════════════════════════════════════════════════════════
@@ -531,6 +573,61 @@
   <div class="loading" id="merge-loading"><span class="spinner"></span>Dateien werden analysiert…</div>
 </section>
 
+<!-- ════════════════════════════════════════════════════════════════
+     VIEW 4 – ADMIN PORTAL
+     ════════════════════════════════════════════════════════════════ -->
+<section class="view" id="view-admin">
+  <div class="admin-wrap">
+    <div class="admin-layout">
+      <div class="admin-panel">
+        <h2 id="admin-form-title">Feature anlegen</h2>
+        <form class="admin-form" id="admin-form">
+          <div class="admin-field">
+            <label for="admin-type">Decoder-Befehl</label>
+            <select id="admin-type" class="admin-select">
+              <option value="ZCONFIG">ZCONFIG</option>
+              <option value="ZCONFIG2">ZCONFIG2</option>
+              <option value="ZCONFIG3">ZCONFIG3</option>
+              <option value="ZCONFIG4">ZCONFIG4</option>
+              <option value="ZVALUE">ZVALUE</option>
+              <option value="ZVALUE2">ZVALUE2</option>
+              <option value="DATACONFIG">DATACONFIG</option>
+            </select>
+          </div>
+          <div class="admin-field">
+            <label for="admin-position">Position / Data-Nummer</label>
+            <input id="admin-position" class="admin-input" type="number" min="1" max="999" required placeholder="z. B. 17">
+          </div>
+          <div class="admin-field">
+            <label for="admin-customer">Kunde (optional)</label>
+            <input id="admin-customer" class="admin-input" type="text" maxlength="100" placeholder="z. B. Muster GmbH">
+          </div>
+          <div class="admin-field">
+            <label for="admin-description">Funktionsbeschreibung</label>
+            <textarea id="admin-description" class="admin-textarea" maxlength="1000" required placeholder="Was bewirkt diese Funktion?"></textarea>
+          </div>
+          <div class="admin-field">
+            <label for="admin-notes">Hinweis (optional)</label>
+            <textarea id="admin-notes" class="admin-textarea" maxlength="1000" placeholder="Voraussetzungen, Firmware-Version, Besonderheiten …"></textarea>
+          </div>
+          <div class="admin-actions">
+            <button type="submit" class="admin-btn primary">Speichern</button>
+            <button type="button" class="admin-btn" onclick="adminResetForm()">Zuruecksetzen</button>
+          </div>
+        </form>
+        <p class="admin-hint">Die Feature-Beschreibungen werden nur in diesem Browser gespeichert.</p>
+      </div>
+      <div class="admin-panel">
+        <h2>Hinterlegte Features <span id="admin-count" class="admin-badge">0</span></h2>
+        <div class="admin-tools">
+          <input id="admin-search" class="admin-input" type="search" placeholder="Features durchsuchen …" oninput="adminRender()">
+        </div>
+        <div id="admin-list" class="admin-feature-list"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <script>
 /* ════════════════════════════════════════════════════════════════
    CONSTANTS
@@ -547,6 +644,7 @@ document.querySelectorAll('.tab').forEach(function(tab) {
     document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
     tab.classList.add('active');
     document.getElementById('view-' + view).classList.add('active');
+    if (view === 'admin') adminRender();
   });
 });
 
@@ -1151,6 +1249,80 @@ var DATACONFIG_DEFS = [
   {n:96,name:'electric_car\'s_total_energy_charged'}, {n:97,name:'electric_car\'s_total_effective_energy_used'}, {n:98,name:'electric_car\'s_battery_state_of_health'}, {n:99,name:'electric_car\'s_battery_charging_cycles_count'},
 ];
 
+/* ── Eigene Angaben (Admin-Portal) ──
+   Werden lokal im Browser gespeichert und ueberschreiben/ergaenzen die
+   fest hinterlegten Beschreibungen im Decoder – z.B. fuer als
+   "Dedicated customer feature" markierte Bits. */
+var ADMIN_STORAGE_KEY = 'itb-admin-features-v1';
+var ADMIN_TYPES = ['ZCONFIG', 'ZCONFIG2', 'ZCONFIG3', 'ZCONFIG4', 'ZVALUE', 'ZVALUE2', 'DATACONFIG'];
+var adminFeatures = adminLoadFeatures();
+
+function adminFeatureKey(type, position) {
+  return type + ':' + position;
+}
+
+function adminNormalizeFeature(item) {
+  if (!item || ADMIN_TYPES.indexOf(item.type) === -1) return null;
+  var position = parseInt(item.position, 10);
+  var description = String(item.description || '').trim();
+  if (!position || position < 1 || position > 999 || !description) return null;
+  return {
+    type: item.type,
+    position: position,
+    customer: String(item.customer || '').trim().slice(0, 100),
+    description: description.slice(0, 1000),
+    notes: String(item.notes || '').trim().slice(0, 1000),
+    updatedAt: item.updatedAt || new Date().toISOString()
+  };
+}
+
+function adminLoadFeatures() {
+  try {
+    var stored = JSON.parse(localStorage.getItem(ADMIN_STORAGE_KEY) || '[]');
+    if (!Array.isArray(stored)) return [];
+    var result = [];
+    stored.forEach(function(item) {
+      var normalized = adminNormalizeFeature(item);
+      if (normalized) result.push(normalized);
+    });
+    return result;
+  } catch (err) {
+    return [];
+  }
+}
+
+function adminSaveFeatures() {
+  localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(adminFeatures));
+}
+
+function adminGetFeature(type, position) {
+  var key = adminFeatureKey(type, position);
+  for (var i = 0; i < adminFeatures.length; i++) {
+    if (adminFeatureKey(adminFeatures[i].type, adminFeatures[i].position) === key) return adminFeatures[i];
+  }
+  return null;
+}
+
+function zcTypeForMode() {
+  return {
+    config: 'ZCONFIG', config2: 'ZCONFIG2', config3: 'ZCONFIG3', config4: 'ZCONFIG4',
+    value: 'ZVALUE', value2: 'ZVALUE2', dataconfig: 'DATACONFIG'
+  }[zcMode] || '';
+}
+
+function zcFeatureDescription(type, position, fallback) {
+  var feature = adminGetFeature(type, position);
+  if (!feature) return fallback;
+  var prefix = feature.customer ? '<small>Kunde: ' + zcEsc(feature.customer) + '</small><br>' : '';
+  var notes = feature.notes ? '<br><small>Hinweis: ' + zcEsc(feature.notes) + '</small>' : '';
+  return '<span class="custom-feature">' + prefix + zcEsc(feature.description) + notes + '</span>';
+}
+
+function zcFeatureSearchText(type, position) {
+  var feature = adminGetFeature(type, position);
+  return feature ? [feature.customer, feature.description, feature.notes].join(' ') : '';
+}
+
 var zcBits = [];
 var zcMode = 'config'; // 'config' | 'value' | 'value2'
 var zcCurFilter = 'all';
@@ -1275,6 +1447,7 @@ function zcFilter(f) {
 function zcRender() {
   if (zcMode === 'dataconfig') { zcRenderDataConfig(); return; }
   var defs = zcMode === 'value2' ? ZV2_DEFS : (zcMode === 'value' ? ZV_DEFS : (zcMode === 'config4' ? ZC4_DEFS : (zcMode === 'config3' ? ZC3_DEFS : (zcMode === 'config2' ? ZC2_DEFS : ZC_DEFS))));
+  var featureType = zcTypeForMode();
   var q = zcSearchTerm();
   var html = '<div class="zc-grid">';
   var shown = 0;
@@ -1288,9 +1461,11 @@ function zcRender() {
     if (zcCurFilter === 'off' &&  isOn) continue;
 
     var desc = defs[num];
+    var isCustomDesc = !!adminGetFeature(featureType, num);
+    var descHtml = zcFeatureDescription(featureType, num, desc ? zcEsc(desc) : '<span class="zc-no-def">Not defined</span>');
 
     if (q) {
-      var hay = (String(num) + ' ' + (desc || '')).toLowerCase();
+      var hay = (String(num) + ' ' + (desc || '') + ' ' + zcFeatureSearchText(featureType, num)).toLowerCase();
       if (hay.indexOf(q) === -1) continue;
     }
     shown++;
@@ -1298,20 +1473,16 @@ function zcRender() {
     if (zcMode === 'value' || zcMode === 'value2') {
       var pillCls  = isOn ? 'on' : 'off';
       var pillText = val.toString();
-      html += '<div class="zc-bit' + (isOn ? ' is-on' : '') + '">' +
+      html += '<div class="zc-bit' + (isOn ? ' is-on' : '') + (isCustomDesc ? ' is-custom' : '') + '">' +
         '<span class="zc-bit-num' + (isOn ? ' on' : '') + '">' + num + '</span>' +
         '<span class="zc-pill ' + pillCls + '" style="min-width:52px;text-align:center">' + pillText + '</span>' +
-        '<span class="zc-desc' + (isOn ? ' on' : '') + '">' +
-          (desc ? desc : '<span class="zc-no-def">Not defined</span>') +
-        '</span>' +
+        '<span class="zc-desc' + (isOn ? ' on' : '') + '">' + descHtml + '</span>' +
       '</div>';
     } else {
-      html += '<div class="zc-bit' + (isOn ? ' is-on' : '') + '">' +
+      html += '<div class="zc-bit' + (isOn ? ' is-on' : '') + (isCustomDesc ? ' is-custom' : '') + '">' +
         '<span class="zc-bit-num' + (isOn ? ' on' : '') + '">' + num + '</span>' +
         '<span class="zc-pill ' + (isOn ? 'on' : 'off') + '">' + (isOn ? '1 \u2013 ON' : '0 \u2013 OFF') + '</span>' +
-        '<span class="zc-desc' + (isOn ? ' on' : '') + '">' +
-          (desc ? desc : '<span class="zc-no-def">Not defined</span>') +
-        '</span>' +
+        '<span class="zc-desc' + (isOn ? ' on' : '') + '">' + descHtml + '</span>' +
       '</div>';
     }
   }
@@ -1475,12 +1646,13 @@ function zcRenderDataConfig() {
     var bit = zcBits[def.n - 1];
     var isOn = (bit === 1);
     var known = (typeof bit !== 'undefined');
+    var isCustomDesc = !!adminGetFeature('DATACONFIG', def.n);
 
     if (zcCurFilter === 'on'  && !isOn) continue;
     if (zcCurFilter === 'off' &&  isOn) continue;
 
     if (q) {
-      var hay = ('data' + def.n + ' ' + def.n + ' ' + def.name).toLowerCase();
+      var hay = ('data' + def.n + ' ' + def.n + ' ' + def.name + ' ' + zcFeatureSearchText('DATACONFIG', def.n)).toLowerCase();
       if (hay.indexOf(q) === -1) continue;
     }
     shown++;
@@ -1488,12 +1660,13 @@ function zcRenderDataConfig() {
     var pillCls  = isOn ? 'on' : 'off';
     var pillText = isOn ? 'vorhanden' : 'nicht vorh.';
 
-    html += '<div class="zc-bit zc-clickable' + (isOn ? ' is-on' : '') + '"' +
+    html += '<div class="zc-bit zc-clickable' + (isOn ? ' is-on' : '') + (isCustomDesc ? ' is-custom' : '') + '"' +
       (known ? ' onclick="zcToggleBit(' + def.n + ')" title="Klicken zum Umschalten"' : '') + '>' +
       '<span class="zc-bit-num' + (isOn ? ' on' : '') + '" style="min-width:48px;white-space:nowrap">Data' + def.n + '</span>' +
       '<span class="zc-pill ' + pillCls + '" style="min-width:78px;text-align:center">' + pillText + '</span>' +
       '<span class="zc-desc' + (isOn ? ' on' : '') + '" style="color:var(--text)">[' + zcEsc(def.name) + ']' +
         (known ? '' : ' <span class="zc-no-def">(kein Bit)</span>') +
+        zcFeatureDescription('DATACONFIG', def.n, '') +
       '</span>' +
     '</div>';
   }
@@ -1519,17 +1692,19 @@ function zcRenderDataGrid() {
 
   for (var n = 1; n <= zcBits.length; n++) {
     var isOn = (zcBits[n - 1] === 1);
+    var customTextGrid = zcFeatureSearchText('DATACONFIG', n);
 
     if (zcCurFilter === 'on'  && !isOn) continue;
     if (zcCurFilter === 'off' &&  isOn) continue;
 
     if (q) {
-      var hay = ('data' + n + ' ' + n + ' ' + (nameByN[n] || '')).toLowerCase();
+      var hay = ('data' + n + ' ' + n + ' ' + (nameByN[n] || '') + ' ' + customTextGrid).toLowerCase();
       if (hay.indexOf(q) === -1) continue;
     }
     shown++;
 
-    html += '<div class="zc-dcell zc-clickable ' + (isOn ? 'on' : 'off') + '" onclick="zcToggleBit(' + n + ')" title="Data' + n + ': ' + (isOn ? 'vorhanden' : 'nicht vorhanden') + ' – klicken zum Umschalten">' +
+    var titleText = 'Data' + n + ': ' + (isOn ? 'vorhanden' : 'nicht vorhanden') + (customTextGrid ? ' – ' + customTextGrid : '') + ' – klicken zum Umschalten';
+    html += '<div class="zc-dcell zc-clickable ' + (isOn ? 'on' : 'off') + (customTextGrid ? ' has-custom' : '') + '" onclick="zcToggleBit(' + n + ')" title="' + zcEsc(titleText) + '">' +
       '<span class="dn">' + n + '</span>' +
     '</div>';
   }
@@ -1538,6 +1713,94 @@ function zcRenderDataGrid() {
   if (!shown) html = '<div class="zc-empty">No entries match the current filter.</div>';
   document.getElementById('zc-out').innerHTML = html;
 }
+
+/* ════════════════════════════════════════════════════════════════
+   VIEW 4 – ADMIN PORTAL (Feature anlegen)
+   ════════════════════════════════════════════════════════════════ */
+function adminResetForm() {
+  document.getElementById('admin-form').reset();
+  document.getElementById('admin-form-title').textContent = 'Feature anlegen';
+  document.getElementById('admin-position').removeAttribute('data-original-key');
+}
+
+function adminEdit(type, position) {
+  var feature = adminGetFeature(type, position);
+  if (!feature) return;
+  document.getElementById('admin-type').value = feature.type;
+  document.getElementById('admin-position').value = feature.position;
+  document.getElementById('admin-position').setAttribute('data-original-key', adminFeatureKey(feature.type, feature.position));
+  document.getElementById('admin-customer').value = feature.customer;
+  document.getElementById('admin-description').value = feature.description;
+  document.getElementById('admin-notes').value = feature.notes;
+  document.getElementById('admin-form-title').textContent = 'Feature bearbeiten';
+  document.getElementById('admin-description').focus();
+}
+
+function adminDelete(type, position) {
+  var feature = adminGetFeature(type, position);
+  if (!feature || !confirm(type + ' Position ' + position + ' wirklich löschen?')) return;
+  adminFeatures = adminFeatures.filter(function(item) {
+    return !(item.type === type && item.position === position);
+  });
+  adminSaveFeatures();
+  adminResetForm();
+  adminRender();
+  if (zcBits.length) zcRender();
+}
+
+function adminRender() {
+  var list = document.getElementById('admin-list');
+  var count = document.getElementById('admin-count');
+  if (!list || !count) return;
+  var query = (document.getElementById('admin-search').value || '').trim().toLowerCase();
+  var features = adminFeatures.slice().sort(function(a, b) {
+    return a.type.localeCompare(b.type) || a.position - b.position;
+  }).filter(function(feature) {
+    return !query || [feature.type, feature.position, feature.customer, feature.description, feature.notes].join(' ').toLowerCase().indexOf(query) !== -1;
+  });
+  count.textContent = adminFeatures.length;
+  if (!features.length) {
+    list.innerHTML = '<div class="zc-empty">' + (adminFeatures.length ? 'Keine Features zur Suche gefunden.' : 'Noch keine Features hinterlegt.') + '</div>';
+    return;
+  }
+  var html = '';
+  features.forEach(function(feature) {
+    html += '<article class="admin-feature">' +
+      '<div class="admin-feature-head">' +
+        '<span class="admin-badge">' + zcEsc(feature.type) + ' · ' + feature.position + '</span>' +
+        (feature.customer ? '<span class="admin-customer">' + zcEsc(feature.customer) + '</span>' : '') +
+        '<span class="admin-feature-actions">' +
+          '<button class="admin-mini-btn" type="button" onclick="adminEdit(\'' + feature.type + '\',' + feature.position + ')">Bearbeiten</button>' +
+          '<button class="admin-mini-btn delete" type="button" onclick="adminDelete(\'' + feature.type + '\',' + feature.position + ')">Löschen</button>' +
+        '</span>' +
+      '</div>' +
+      '<div class="admin-feature-desc">' + zcEsc(feature.description) + '</div>' +
+      (feature.notes ? '<div class="admin-feature-notes">Hinweis: ' + zcEsc(feature.notes) + '</div>' : '') +
+    '</article>';
+  });
+  list.innerHTML = html;
+}
+
+document.getElementById('admin-form').addEventListener('submit', function(event) {
+  event.preventDefault();
+  var feature = adminNormalizeFeature({
+    type: document.getElementById('admin-type').value,
+    position: document.getElementById('admin-position').value,
+    customer: document.getElementById('admin-customer').value,
+    description: document.getElementById('admin-description').value,
+    notes: document.getElementById('admin-notes').value
+  });
+  if (!feature) return;
+  var originalKey = document.getElementById('admin-position').getAttribute('data-original-key');
+  adminFeatures = adminFeatures.filter(function(item) {
+    return adminFeatureKey(item.type, item.position) !== adminFeatureKey(feature.type, feature.position) && adminFeatureKey(item.type, item.position) !== originalKey;
+  });
+  adminFeatures.push(feature);
+  adminSaveFeatures();
+  adminResetForm();
+  adminRender();
+  if (zcBits.length) zcRender();
+});
 
 /* ════════════════════════════════════════════════════════════════
    VIEW 3 – PTO-ERKENNUNG
