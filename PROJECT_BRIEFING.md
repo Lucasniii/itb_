@@ -17,8 +17,8 @@ Zielgruppe: interne Nutzung durch den/die Entwickler:in bzw. wenige technisch ve
 
 Diese Punkte sind bewusste Architekturentscheidungen und dürfen nicht ohne ausdrückliche Rücksprache mit dem/der Projektverantwortlichen geändert werden:
 
-1. **Jeder angemeldete Nutzer gilt als vertrauenswürdig.** Das gesamte RLS-Modell steht auf dieser Annahme. Ob sich jemand selbst registrieren kann und ob Adressen automatisch bestätigt werden, entscheidet eine Einstellung im Supabase-Dashboard — nicht der Code. Wer sie öffnet, öffnet damit die Wissensdatenbank samt Kundennamen und alle Kolleg:innen-Adressen für jeden, der die öffentliche URL kennt.
-2. **XLSX-Inhalte bleiben im Browser.** Fahrzeugberichte, Kennzeichen und Kilometerstände aus hochgeladenen Dateien werden ausschließlich lokal verarbeitet und niemals an einen Server geschickt. Keine Analytics, kein Tracking. (Die Supabase-Anbindung betrifft nur Decoder-Feature-Beschreibungen und das Orakel — siehe Punkt 3.)
+1. **Jeder angemeldete Nutzer gilt als vertrauenswürdig.** Das gesamte RLS-Modell steht auf dieser Annahme. Ob sich jemand selbst registrieren kann und ob Adressen automatisch bestätigt werden, entscheidet eine Einstellung im Supabase-Dashboard — nicht der Code. Wer sie öffnet, öffnet damit die zentralen Decoder-Beschreibungen samt Kundennamen und alle Kolleg:innen-Adressen für jeden, der die öffentliche URL kennt.
+2. **XLSX-Inhalte bleiben im Browser.** Fahrzeugberichte, Kennzeichen und Kilometerstände aus hochgeladenen Dateien werden ausschließlich lokal verarbeitet und niemals an einen Server geschickt. Keine Analytics, kein Tracking. Die Supabase-Anbindung betrifft nur Decoder-Feature-Beschreibungen.
 3. **Die App ist öffentlich gehostet — Zugriffsschutz liegt komplett in den RLS-Policies.** Repo und GitHub-Pages-Seite (https://lucasniii.github.io/itb_/) sind öffentlich, der Supabase-Key steht damit im Klartext in [index.html](index.html). Das ist nur deshalb unbedenklich, weil **keine einzige Policy dem `anon`-Rolle etwas erlaubt**. Wer neue Tabellen anlegt: RLS aktivieren und ausschließlich `to authenticated`-Policies schreiben — sonst sind Kundennamen und Wissensinhalte sofort weltweit lesbar und beschreibbar.
 4. **Freigabepflicht liegt in der Datenbank, nicht im Frontend.** Wer Wissensinhalte schreibt, tut das über Tabellen mit `status`-Spalte und `guard_review`-Trigger. Neue Inhaltstabellen bekommen denselben Trigger — Sichtbarkeit ohne Admin-Freigabe darf nie allein davon abhängen, dass die Oberfläche einen Button versteckt.
 5. **Single-File-Architektur bleibt erhalten.** Kein Umbau auf ein Build-System, Framework oder Modulsystem, solange nicht ausdrücklich gewünscht — die Einfachheit (eine Datei öffnen/hosten reicht) ist ein Feature, kein technisches Schulden-Problem.
@@ -27,18 +27,14 @@ Diese Punkte sind bewusste Architekturentscheidungen und dürfen nicht ohne ausd
 
 ## Priorisierte Roadmap
 
-> Aktuell nur ein konkret vereinbarter Punkt. Weitere Prioritäten trägt der/die Projektverantwortliche hier nach — nicht spekulativ auffüllen.
-
-1. **Orakel — neuer Wissensdatenbank-Tab** *(als Nächstes)*
-   Ein fünfter Tab, der über die reinen Decoder-Bit-Beschreibungen (Admin-Tab) hinausgeht: ein durchsuchbarer Wissensspeicher für Troubleshooting-Erfahrungen, wiederkehrende Kundenfragen, Vorgehensweisen.
-   **Die Datenbank-Seite steht bereits**: Tabelle `orakel_entries` (Frage, Antwort, Tags, Autor, Zeitstempel) inkl. RLS-Policies, Volltext-Index und Freigabe-Workflow (`status`, Trigger `guard_review`) ist angelegt und getestet — die Oberfläche muss den Status nur anzeigen, nicht selbst absichern. Es fehlt ausschließlich die Oberfläche: Tab, Formular, Liste, Suche/Tag-Filter — analog zum Admin-Tab aufgebaut und ebenfalls hinter dem Login.
+> Aktuell ist kein weiterer Punkt konkret priorisiert. Weitere Prioritäten trägt der/die Projektverantwortliche hier nach — nicht spekulativ auffüllen.
 
 ## Erledigt
 
 - **Supabase-Anbindung mit Mehrbenutzer-Login** *(23.08.2026)* — eigenes Projekt `ITB.BERICHTE` (`jkxxgvhknswhbayvmmoc`, eu-central-1); Admin-Feature-Beschreibungen liegen zentral statt in `localStorage` und sind für alle angemeldeten Kolleg:innen sichtbar. Login per E-Mail/Passwort. Einmalige Übernahme alter lokaler Features ist im Admin-Tab eingebaut.
-- **Rollen & Freigabe-Workflow** *(23.08.2026)* — zwei Rollen in `profiles.role`: **user** darf einreichen und eigene, noch nicht freigegebene Einträge bearbeiten; **admin** gibt frei, lehnt ab und vergibt Rollen. Neue Registrierungen sind immer `user`. Eingereichtes erscheint erst nach Freigabe im Decoder; ein Änderungsvorschlag zu einer bereits freigegebenen Position verdrängt den freigegebenen Stand nicht, sondern liegt daneben, bis ein Admin ihn freigibt (dann ersetzt er ihn). Durchgesetzt wird das serverseitig durch Trigger (`guard_review`, `guard_profile_role`) und RLS — der Client kann den Status nicht setzen, auch nicht mit manipulierten Requests. Der letzte Admin kann sich die Rechte nicht selbst entziehen; Notausgang bleibt der Supabase-SQL-Editor. Gilt gleichermaßen für `orakel_entries`, damit der Orakel-Tab den Workflow schon fertig vorfindet.
+- **Rollen & Freigabe-Workflow** *(23.08.2026)* — zwei Rollen in `profiles.role`: **user** darf einreichen und eigene, noch nicht freigegebene Decoder-Beschreibungen bearbeiten; **admin** gibt frei, lehnt ab und vergibt Rollen. Neue Registrierungen sind immer `user`. Eingereichtes erscheint erst nach Freigabe im Decoder; ein Änderungsvorschlag zu einer bereits freigegebenen Position verdrängt den freigegebenen Stand nicht, sondern liegt daneben, bis ein Admin ihn freigibt (dann ersetzt er ihn). Durchgesetzt wird das serverseitig durch Trigger (`guard_review`, `guard_profile_role`) und RLS — der Client kann den Status nicht setzen, auch nicht mit manipulierten Requests. Der letzte Admin kann sich die Rechte nicht selbst entziehen; Notausgang bleibt der Supabase-SQL-Editor.
 
-  **Sichtbarkeit:** Der Admin-Reiter ist ausdrücklich nur für Admins sichtbar — Nicht-Admins sehen ihn gar nicht und reichen im aktuellen Stand also nichts ein; für sie ist die App ein reines Nachschlagewerk. Der Freigabe-Workflow bleibt trotzdem in der Datenbank aktiv, weil der geplante Orakel-Tab darüber laufen soll. Weil der Login bisher im Admin-Reiter steckte, gibt es jetzt einen **„Anmelden"-Knopf in der Kopfzeile**. Details in [CLAUDE.md](CLAUDE.md).
+  **Sichtbarkeit:** Der Admin-Reiter ist ausdrücklich nur für Admins sichtbar — Nicht-Admins sehen ihn gar nicht; für sie ist die App ein reines Nachschlagewerk. Weil der Login im Admin-Reiter steckt, gibt es einen **„Anmelden"-Knopf in der Kopfzeile**. Details in [CLAUDE.md](CLAUDE.md).
 
   Der Admin-Reiter hat zwei Unterreiter: **Feature anlegen** (Formular, Liste, offene Freigaben) und **Benutzer & Rollen**.
 - **Sicherheits-Nachzug** *(23.08.2026)* — drei Punkte aus einer Stichprobenprüfung behoben: (1) Kennzeichen, Datums-/Zeitwerte und Dateinamen aus hochgeladenen XLSX gingen ungeescaped ins DOM und hätten über eine präparierte Datei Skript ausführen können — laufen jetzt alle durch `zcEsc()`; (2) die drei CDN-Skripte haben SRI-Hashes und `crossorigin` bekommen, SheetJS ist von 0.18.5 (bekannte Schwachstellen, npm/cdnjs gehen nicht höher) auf 0.20.3 vom Hersteller-CDN gewechselt — die von der App genutzten APIs sind vorher in Node gegen beide Versionen geprüft worden und liefern identische Ergebnisse; (3) `anon` hatte auf SQL-Ebene noch die Supabase-Standardrechte, die nur durch RLS ins Leere liefen — jetzt zusätzlich entzogen, inklusive Default-Privilegien für künftige Tabellen. **Offen und nicht durch Code lösbar:** die Registrierung wird im Supabase-Dashboard geregelt (siehe Leitplanke 1).
@@ -46,11 +42,7 @@ Diese Punkte sind bewusste Architekturentscheidungen und dürfen nicht ohne ausd
 
 ## Offene Produktentscheidungen
 
-Zum Orakel-Tab noch offen — die Datenbank ist bewusst so flexibel angelegt, dass alle Varianten möglich bleiben:
-
-- **Inhaltsform**: Das Schema bildet Q&A ab (`question`/`answer`). Falls doch freie Artikel gewünscht sind, ließe sich `question` als Titel verwenden — vor dem Bau kurz klären.
-- **Tags**: Spalte `tags text[]` existiert samt Index. Offen ist, ob die Oberfläche freie Tag-Eingabe bekommt oder eine feste Auswahlliste.
-- **Verhältnis zu Admin-Tab**: Orakel ist als eigenständiger, nicht an Decoder-Bits gebundener Wissensspeicher gedacht (Admin bleibt strikt Bit-Beschreibungen). Falls sich das überschneiden soll, vorher klären.
+Aktuell sind keine offenen Produktentscheidungen dokumentiert.
 
 ## Wiederverwendbarer Task-Prompt
 

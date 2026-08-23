@@ -37,4 +37,4 @@ Drei Punkte, an denen man sich am schnellsten vergreift:
    kein Upload von Tabelleninhalten.
 
 Der angewendete Datenbankstand liegt als SQL unter
-[supabase/migrations/](supabase/migrations/).
+[supabase/schema.sql](supabase/schema.sql).
