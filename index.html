@@ -889,6 +889,9 @@ document.getElementById('auth-form').addEventListener('submit', function(event) 
 });
 
 function authSignOut() {
+  try {
+    localStorage.removeItem(ADMIN_STORAGE_KEY);
+  } catch (err) {}
   sb.auth.signOut();
 }
 
@@ -1045,6 +1048,9 @@ function authApplyState(user) {
       return profilesLoad();
     }).then(adminLoadFeatures);
   } else {
+    try {
+      localStorage.removeItem(ADMIN_STORAGE_KEY);
+    } catch (err) {}
     authRole = 'user';
     adminFeatures = [];
     adminProfiles = [];
@@ -1799,21 +1805,31 @@ var ADMIN_STORAGE_KEY = 'itb-admin-features-v1'; // nur noch fuer die Uebernahme
 var ADMIN_TYPES = ['ZCONFIG', 'ZCONFIG2', 'ZCONFIG3', 'ZCONFIG4', 'ZVALUE', 'ZVALUE2', 'DATACONFIG'];
 var adminFeatures = [];
 
+function projectSafeText(value, maxLen) {
+  if (value === null || value === undefined) return '';
+  var text = String(value).replace(/[\u0000-\u001F\u007F]/g, '').trim();
+  if (typeof maxLen === 'number' && maxLen > 0 && text.length > maxLen) {
+    text = text.slice(0, maxLen);
+  }
+  return text;
+}
+
 function adminFeatureKey(type, position) {
   return type + ':' + position;
 }
 
 function adminNormalizeFeature(item) {
-  if (!item || ADMIN_TYPES.indexOf(item.type) === -1) return null;
+  if (!item || !item.type || ADMIN_TYPES.indexOf(item.type) === -1) return null;
+  var type = projectSafeText(item.type, 32);
   var position = parseInt(item.position, 10);
-  var description = String(item.description || '').trim();
-  if (!position || position < 1 || position > 999 || !description) return null;
+  var description = projectSafeText(item.description, 1000);
+  if (!type || !position || position < 1 || position > 999 || !description) return null;
   return {
-    type: item.type,
+    type: type,
     position: position,
-    customer: String(item.customer || '').trim().slice(0, 100),
-    description: description.slice(0, 1000),
-    notes: String(item.notes || '').trim().slice(0, 1000)
+    customer: projectSafeText(item.customer, 100),
+    description: description,
+    notes: projectSafeText(item.notes, 1000)
   };
 }
 
@@ -1862,6 +1878,7 @@ function adminReadLocalFeatures() {
     if (!Array.isArray(stored)) return [];
     var result = [];
     stored.forEach(function(item) {
+      if (!item || typeof item !== 'object' || !Object.prototype.hasOwnProperty.call(item, 'type')) return;
       var normalized = adminNormalizeFeature(item);
       if (normalized) result.push(normalized);
     });
