@@ -15,7 +15,7 @@ node --check /tmp/s.js
 
 ## Architecture
 
-Framework-free single file. Three CDN dependencies: `xlsx.full.min.js` (SheetJS), `jszip.min.js` (used by SheetJS for writing), `supabase-js`. Roboto via a Google Fonts `@import`.
+Framework-free single file. Three CDN dependencies, each pinned with an SRI `integrity` hash and `crossorigin="anonymous"`: `xlsx.full.min.js` (SheetJS 0.20.3, served from `cdn.sheetjs.com` — npm/cdnjs stop at the vulnerable 0.18.5), `jszip.min.js` (used **directly** by `downloadMarked()`, which rewrites the sheet XML by hand), and `supabase-js`. Bumping a version means recomputing its hash: `curl -s <url> | openssl dgst -sha384 -binary | openssl base64 -A`. Roboto via a Google Fonts `@import` (no SRI possible on an `@import`).
 
 **XLSX analysis never leaves the browser** — spreadsheet contents are not uploaded anywhere. Only decoder descriptions and the planned Orakel knowledge base are server-backed.
 
@@ -40,7 +40,9 @@ Tables (RLS on, every policy `to authenticated`):
 - Two partial unique indexes replace the old `(type, position)` constraint: one `where status = 'approved'`, one on `(type, position, created_by) where status = 'pending'`. An open proposal can sit next to the live description without displacing it, so the client does explicit insert-vs-update (`adminTargetRow()`), never an upsert.
 - SELECT: `status = 'approved' or created_by = auth.uid() or is_admin()`. UPDATE/DELETE additionally require `status <> 'approved'` for non-admins.
 
-Advisor WARNs for `is_admin()` and `approve_decoder_feature()` are expected — both check permissions themselves. Auth is email/password with Supabase's default email confirmation; `authApplyState()` handles the pre-confirmation state. The app is fully usable signed out.
+Advisor WARNs for `is_admin()` and `approve_decoder_feature()` are expected — both check permissions themselves. `anon` additionally has **no SQL grants at all** (revoked on top of RLS, including default privileges for future tables), so a table that ever lost its RLS would still not be world-readable.
+
+Auth is email/password. `authApplyState()` handles both the confirmed and unconfirmed state, but do **not** assume a mail round-trip protects anything: whether self-registration is open and whether addresses are auto-confirmed is a project setting in the Supabase dashboard, and the RLS model treats every `authenticated` user as a trusted colleague. Check that setting before drawing conclusions. The app is fully usable signed out.
 
 ### Tabs
 
@@ -75,4 +77,4 @@ No router: `showView(name)` toggles `.active` on the `.tab`/`.view` pair keyed b
 
 **Language** — UI text is German, with `ae`/`oe`/`ue` instead of umlauts in JS strings and comments. Comments mix German (domain logic) and English (technical markers); section dividers use the ASCII box style already in the file.
 
-**JavaScript** — one `<script>` block, global functions, `var` throughout, ES5/ES6 mix, no modules. DOM via `getElementById`/`querySelectorAll`; HTML is built by `innerHTML` string concatenation, so **escape every interpolated value with `zcEsc()`** — including values read from uploaded spreadsheets, which some KM-/PTO render paths still miss. Lookup constants use `UPPER_SNAKE_CASE`.
+**JavaScript** — one `<script>` block, global functions, `var` throughout, ES5/ES6 mix, no modules. DOM via `getElementById`/`querySelectorAll`; HTML is built by `innerHTML` string concatenation, so **escape every interpolated value with `zcEsc()`** — license plates, dates, times and file names from uploaded spreadsheets included. Error text goes through `textContent` (`setStatus`, `authMsg`, `adminSetStatus`, `rolesMsg`) and needs no escaping. Lookup constants use `UPPER_SNAKE_CASE`.

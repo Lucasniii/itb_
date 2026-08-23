@@ -4,9 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ITB.BERICHTE – Auswertung</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
+<!-- Externe Bibliotheken mit Integritaetspruefung (SRI): laedt der CDN etwas
+     anderes aus als hier hinterlegt, fuehrt der Browser es gar nicht erst aus.
+     Beim Aktualisieren einer Version muss der Hash mit neu berechnet werden:
+       curl -s <url> | openssl dgst -sha384 -binary | openssl base64 -A       -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"
+        integrity="sha384-EnyY0/GSHQGSxSgMwaIPzSESbqoOLSexfnSMN2AP+39Ckmn92stwABZynq1JyzdT"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"
+        integrity="sha384-+mbV2IY1Zk/X1p/nWllGySJSUN8uMs+gUAN10Or95UBH0fpj6GfKgPmgC5EXieXG"
+        crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"
+        integrity="sha384-KX6Y/AMIv9qA8TLCDul2JatZWeyrJVgj3Xu/0r30Nr05xO8md1+wHAgtdsRV9LoE"
+        crossorigin="anonymous"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap');
 
@@ -1090,7 +1100,7 @@ pruefDrop.addEventListener('drop', function(e) {
 
 function setPruefFile(file) {
   currentFile = file;
-  document.getElementById('pruef-filename').innerHTML = '<div class="filename-chip">✓ ' + file.name + '</div>';
+  document.getElementById('pruef-filename').innerHTML = '<div class="filename-chip">✓ ' + zcEsc(file.name) + '</div>';
   pruefRun.disabled = false;
   pruefDrop.classList.add('has-file');
   hidePruefResults();
@@ -1291,7 +1301,7 @@ function showResults(groups) {
     else if (hasErr)         { cls = 'bad';   icon = '⚠ '; }
     else if (hasFrozen)      { cls = 'frozen';icon = '≡ '; }
     else                     { cls = 'good';  icon = '✓ '; }
-    chipsHtml += '<div class="kz-chip ' + cls + '">' + icon + g.kz;
+    chipsHtml += '<div class="kz-chip ' + cls + '">' + icon + zcEsc(g.kz);
     var counts = [];
     if (g.errorRows.length  > 0) counts.push(g.errorRows.length + ' X');
     if (g.frozenRows.length > 0) counts.push(g.frozenRows.length + ' ≡');
@@ -1317,7 +1327,7 @@ function showResults(groups) {
       else if (hasFrozen)      headerCls += ' frozen-kz';
       var icon = hasErr ? '⚠' : (hasFrozen ? '≡' : '✓');
       html += '<div class="kz-section"><div class="' + headerCls + '" onclick="toggleSection(this)">';
-      html += '<span>' + icon + '</span><span class="kz-name">' + g.kz + '</span>';
+      html += '<span>' + icon + '</span><span class="kz-name">' + zcEsc(g.kz) + '</span>';
       if (hasAny) {
         var metaParts = [];
         if (g.errorRows.length  > 0) metaParts.push(g.errorRows.length  + ' KM-Fehler');
@@ -1344,13 +1354,13 @@ function showResults(groups) {
         allErrorRows.forEach(function(entry) {
           var er = entry.row;
           html += '<tr><td>' + er.excelRow + '</td>';
-          html += '<td><span style="color:var(--accent);font-weight:700">' + g.kz + '</span></td>';
-          html += '<td style="color:var(--muted)">' + er.datum + '</td>';
-          html += '<td>' + er.start + ' – ' + er.stop + '</td>';
+          html += '<td><span style="color:var(--accent);font-weight:700">' + zcEsc(g.kz) + '</span></td>';
+          html += '<td style="color:var(--muted)">' + zcEsc(er.datum) + '</td>';
+          html += '<td>' + zcEsc(er.start) + ' – ' + zcEsc(er.stop) + '</td>';
           html += '<td>' + Math.round(er.kmStand).toLocaleString('de') + '</td>';
           if (entry.type === 'x') {
-            html += '<td style="color:var(--red)">'   + er.km + '</td>';
-            html += '<td style="color:var(--green)">' + er.expectedKm + '</td>';
+            html += '<td style="color:var(--red)">'   + zcEsc(er.km) + '</td>';
+            html += '<td style="color:var(--green)">' + zcEsc(er.expectedKm) + '</td>';
             html += '<td><span class="tag-x">X</span></td>';
           } else {
             html += '<td style="color:var(--orange)">—</td>';
@@ -2641,7 +2651,7 @@ function renderMergeList() {
   mergeFiles.forEach(function(f, i) {
     html += '<div class="file-item">';
     html += '<span class="idx">' + (i+1) + '.</span>';
-    html += '<span class="name">' + f.name + '</span>';
+    html += '<span class="name">' + zcEsc(f.name) + '</span>';
     html += '<span class="actions"><button class="icon-btn del" onclick="removeMerge(' + i + ')" title="entfernen">✕</button></span>';
     html += '</div>';
   });
@@ -2726,9 +2736,9 @@ function renderKzOverview(combined) {
   kzList.forEach(function(kz) {
     var info = combined[kz];
     if (info.hasInput) {
-      html += '<div class="kz-chip active" title="' + info.count + ' PTO-Events">⚙ ' + kz + ' (' + info.count + ')</div>';
+      html += '<div class="kz-chip active" title="' + info.count + ' PTO-Events">⚙ ' + zcEsc(kz) + ' (' + info.count + ')</div>';
     } else {
-      html += '<div class="kz-chip idle">○ ' + kz + '</div>';
+      html += '<div class="kz-chip idle">○ ' + zcEsc(kz) + '</div>';
     }
   });
   html += '</div>';
