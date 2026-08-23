@@ -21,6 +21,8 @@ Framework-free single file. Three CDN dependencies: `xlsx.full.min.js` (SheetJS)
 
 ### Supabase (project ITB.BERICHTE, `jkxxgvhknswhbayvmmoc`, eu-central-1)
 
+The applied database state is mirrored as SQL in [supabase/migrations/](supabase/migrations/) — documentation, not a runner; keep it in sync when you change the schema.
+
 `SUPABASE_URL`/`SUPABASE_KEY` are hardcoded and public by design — **all access control lives in RLS**, and no policy or grant addresses `anon`. The app ships to public GitHub Pages from a public repo, so anything `anon` could read would be world-readable. There is no usage tracking of any kind; keep it that way.
 
 Tables (RLS on, every policy `to authenticated`):
