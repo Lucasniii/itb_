@@ -6,8 +6,9 @@
 <title>ITB.BERICHTE – Auswertung</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"></script>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@700;800&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap');
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -26,7 +27,7 @@
   body {
     background: var(--bg);
     color: var(--text);
-    font-family: 'DM Mono', 'Courier New', monospace;
+    font-family: 'Roboto', Arial, sans-serif;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -42,9 +43,31 @@
     padding-bottom: 24px;
   }
 
-  h1 { font-family: 'Syne', Arial, sans-serif; font-weight: 800; font-size: 2.2rem; letter-spacing: -1px; line-height: 1; }
+  h1 { font-family: 'Roboto', Arial, sans-serif; font-weight: 800; font-size: 2.2rem; letter-spacing: -1px; line-height: 1; }
   h1 span { color: var(--accent); }
   .subtitle { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 6px; }
+
+  /* ── AUTH ── */
+  .header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .auth-bar { display: flex; align-items: center; gap: 10px; font-size: 0.7rem; color: var(--muted); }
+  .auth-user { color: var(--accent); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .auth-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+  .auth-dot.on { background: var(--green); }
+
+  .auth-gate { width: 100%; max-width: 380px; margin: 0 auto; }
+  .auth-gate .admin-panel { padding: 24px; }
+  .auth-note {
+    font-size: 0.7rem; color: var(--muted); line-height: 1.55;
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border);
+  }
+  .auth-msg { font-size: 0.72rem; margin-top: 10px; line-height: 1.5; display: none; }
+  .auth-msg.visible { display: block; }
+  .auth-msg.error { color: var(--red); }
+  .auth-msg.success { color: var(--green); }
+  .auth-switch {
+    background: none; border: none; color: var(--accent); cursor: pointer;
+    font-family: inherit; font-size: 0.7rem; text-decoration: underline; padding: 0;
+  }
 
   /* ── TABS ── */
   .tabs {
@@ -54,7 +77,7 @@
   }
   .tab {
     padding: 12px 22px; background: transparent; color: var(--muted);
-    font-family: 'Syne', Arial, sans-serif; font-weight: 700; font-size: 0.82rem;
+    font-family: 'Roboto', Arial, sans-serif; font-weight: 700; font-size: 0.82rem;
     border: none; border-bottom: 2px solid transparent; cursor: pointer;
     letter-spacing: 0.06em; transition: color 0.15s, border-color 0.15s;
   }
@@ -77,7 +100,7 @@
   .drop-zone.has-file  { border-color: #333; }
 
   .drop-icon  { font-size: 2.8rem; margin-bottom: 12px; display: block; }
-  .drop-label { font-family: 'Syne', Arial, sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
+  .drop-label { font-family: 'Roboto', Arial, sans-serif; font-size: 1.05rem; font-weight: 700; margin-bottom: 6px; }
   .drop-sub   { font-size: 0.72rem; color: var(--muted); margin-bottom: 20px; }
 
   .file-row { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 4px; }
@@ -87,7 +110,7 @@
   .btn-choose {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 10px 22px; background: var(--surface); color: var(--text);
-    font-family: 'Syne', Arial, sans-serif; font-weight: 700; font-size: 0.82rem;
+    font-family: 'Roboto', Arial, sans-serif; font-weight: 700; font-size: 0.82rem;
     border: 1px solid var(--border); border-radius: 2px; cursor: pointer;
     letter-spacing: 0.04em; transition: border-color 0.15s; user-select: none;
   }
@@ -96,7 +119,7 @@
   .btn-run {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 10px 26px; background: var(--accent); color: #000;
-    font-family: 'Syne', Arial, sans-serif; font-weight: 700; font-size: 0.85rem;
+    font-family: 'Roboto', Arial, sans-serif; font-weight: 700; font-size: 0.85rem;
     border: none; border-radius: 2px; cursor: pointer;
     letter-spacing: 0.05em; transition: opacity 0.15s, transform 0.15s;
   }
@@ -120,7 +143,7 @@
     font-size: 0.78rem;
   }
   .file-item .idx {
-    font-family: 'Syne', Arial, sans-serif; font-weight: 800; color: var(--accent);
+    font-family: 'Roboto', Arial, sans-serif; font-weight: 800; color: var(--accent);
     min-width: 24px;
   }
   .file-item .name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -167,7 +190,7 @@
     display: flex; align-items: center; justify-content: space-between;
     margin-bottom: 16px; flex-wrap: wrap; gap: 12px;
   }
-  .results-title { font-family: 'Syne', Arial, sans-serif; font-weight: 700; font-size: 1.1rem; }
+  .results-title { font-family: 'Roboto', Arial, sans-serif; font-weight: 700; font-size: 1.1rem; }
 
   .badge { padding: 5px 12px; border-radius: 2px; font-size: 0.72rem; font-weight: 500; letter-spacing: 0.08em; }
   .badge-red    { background: rgba(255,68,68,0.15);  color: var(--red);   border: 1px solid rgba(255,68,68,0.3); }
@@ -177,7 +200,7 @@
   .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
   .stat-box { background: var(--surface); border: 1px solid var(--border); padding: 16px 20px; border-radius: 2px; }
   .stat-label { font-size: 0.65rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
-  .stat-value { font-family: 'Syne', Arial, sans-serif; font-size: 1.7rem; font-weight: 800; }
+  .stat-value { font-family: 'Roboto', Arial, sans-serif; font-size: 1.7rem; font-weight: 800; }
   .stat-value.red    { color: var(--red); }
   .stat-value.green  { color: var(--green); }
   .stat-value.yellow { color: var(--accent); }
@@ -204,7 +227,7 @@
   .kz-header.error-kz   { border-left-color: var(--red); }
   .kz-header.frozen-kz  { border-left-color: var(--orange); }
   .kz-header.mixed-kz   { border-left-color: var(--red); }
-  .kz-name { font-family: 'Syne', Arial, sans-serif; font-weight: 800; font-size: 1rem; letter-spacing: 0.05em; }
+  .kz-name { font-family: 'Roboto', Arial, sans-serif; font-weight: 800; font-size: 1rem; letter-spacing: 0.05em; }
   .kz-meta { font-size: 0.7rem; color: var(--muted); margin-left: auto; }
   .kz-toggle { font-size: 0.7rem; color: var(--muted); margin-left: 8px; }
   .kz-body { display: block; }
@@ -214,7 +237,7 @@
   .btn-dl {
     display: inline-flex; align-items: center; gap: 8px;
     padding: 10px 22px; background: transparent; color: var(--accent);
-    font-family: 'Syne', Arial, sans-serif; font-weight: 700; font-size: 0.82rem;
+    font-family: 'Roboto', Arial, sans-serif; font-weight: 700; font-size: 0.82rem;
     border: 1px solid var(--accent); border-radius: 2px; cursor: pointer;
     letter-spacing: 0.05em; transition: background 0.15s;
   }
@@ -257,13 +280,13 @@
     border: 1px solid rgba(68,255,136,0.2); border-radius: 4px;
     background: rgba(68,255,136,0.04);
   }
-  .all-ok .big { font-family: 'Syne', Arial, sans-serif; font-size: 2.4rem; font-weight: 800; color: var(--green); margin-bottom: 8px; }
+  .all-ok .big { font-family: 'Roboto', Arial, sans-serif; font-size: 2.4rem; font-weight: 800; color: var(--green); margin-bottom: 8px; }
   .all-ok .sub { font-size: 0.78rem; color: var(--muted); }
 
   .kz-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
   .kz-chip {
     padding: 5px 14px; border-radius: 2px; font-size: 0.72rem;
-    font-family: 'Syne', Arial, sans-serif; font-weight: 700; letter-spacing: 0.06em;
+    font-family: 'Roboto', Arial, sans-serif; font-weight: 700; letter-spacing: 0.06em;
   }
   .kz-chip.bad    { background: rgba(255,68,68,0.15);  color: var(--red);    border: 1px solid rgba(255,68,68,0.3); }
   .kz-chip.frozen { background: rgba(255,153,68,0.15); color: var(--orange); border: 1px solid rgba(255,153,68,0.3); }
@@ -278,7 +301,7 @@
     background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
   }
   .kz-overview-title {
-    font-family: 'Syne', Arial, sans-serif; font-weight: 700; font-size: 0.78rem;
+    font-family: 'Roboto', Arial, sans-serif; font-weight: 700; font-size: 0.78rem;
     letter-spacing: 0.06em; color: var(--muted); text-transform: uppercase;
     margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
   }
@@ -297,7 +320,7 @@
   .zc-input-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; }
   .zc-textarea {
     flex: 1; min-width: 220px;
-    font-family: 'DM Mono', 'Courier New', monospace; font-size: 0.78rem;
+    font-family: 'Roboto', Arial, sans-serif; font-size: 0.78rem;
     padding: 12px 16px; background: var(--surface);
     border: 1px solid var(--border); border-radius: 2px;
     color: var(--text); resize: vertical; min-height: 70px;
@@ -310,7 +333,7 @@
     border-radius: 2px; padding: 12px 18px; min-width: 100px;
   }
   .zc-stat-label { font-size: 0.62rem; color: var(--text); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 5px; }
-  .zc-stat-val { font-family: 'Syne', Arial, sans-serif; font-size: 1.6rem; font-weight: 800; }
+  .zc-stat-val { font-family: 'Roboto', Arial, sans-serif; font-size: 1.6rem; font-weight: 800; }
   .zc-stat-val.on  { color: var(--green); }
   .zc-stat-val.off { color: var(--text); }
   .zc-stat-val.acc { color: var(--accent); }
@@ -318,7 +341,7 @@
   .zc-filter-row { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
   .zc-fbtn {
     padding: 7px 16px; background: transparent;
-    color: var(--muted); font-family: 'DM Mono', 'Courier New', monospace;
+    color: var(--muted); font-family: 'Roboto', Arial, sans-serif;
     font-size: 0.72rem; border: 1px solid var(--border);
     border-radius: 2px; cursor: pointer; transition: all 0.15s;
   }
@@ -365,7 +388,7 @@
   }
   .event-num {
     flex-shrink: 0; width: 64px; text-align: center;
-    font-family: 'Syne', Arial, sans-serif; font-weight: 800; font-size: 1.05rem; color: var(--accent);
+    font-family: 'Roboto', Arial, sans-serif; font-weight: 800; font-size: 1.05rem; color: var(--accent);
     padding: 13px 8px; border-right: 1px solid var(--border);
   }
   .event-desc { flex: 1; padding: 13px 18px; font-size: 0.8rem; color: var(--text); text-align: center; }
@@ -374,7 +397,7 @@
   .zc-search {
     flex: 1; padding: 8px 14px;
     background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
-    color: var(--text); font-family: 'DM Mono', 'Courier New', monospace; font-size: 0.74rem;
+    color: var(--text); font-family: 'Roboto', Arial, sans-serif; font-size: 0.74rem;
     transition: border-color 0.15s;
   }
   .zc-search:focus { outline: none; border-color: var(--accent); }
@@ -398,7 +421,7 @@
     background: var(--surface); transition: transform 0.1s;
   }
   .zc-dcell:hover { transform: translateY(-1px); }
-  .zc-dcell .dn { font-family: 'Syne', Arial, sans-serif; font-weight: 800; font-size: 1rem; }
+  .zc-dcell .dn { font-family: 'Roboto', Arial, sans-serif; font-weight: 800; font-size: 1rem; }
   .zc-dcell.on  { background: rgba(68,255,136,0.12); border-color: rgba(68,255,136,0.4); }
   .zc-dcell.on  .dn { color: var(--green); }
   .zc-dcell.off { background: var(--surface); border-color: var(--border); }
@@ -420,21 +443,24 @@
   .admin-wrap { width: 100%; }
   .admin-layout { display: grid; grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.4fr); gap: 20px; align-items: start; }
   .admin-panel { background: var(--surface); border: 1px solid var(--border); border-radius: 3px; padding: 20px; }
-  .admin-panel h2 { font-family: 'Syne', Arial, sans-serif; font-size: 1rem; letter-spacing: 0.04em; margin-bottom: 16px; }
+  .admin-panel h2 { font-family: 'Roboto', Arial, sans-serif; font-size: 1rem; letter-spacing: 0.04em; margin-bottom: 16px; }
   .admin-form { display: grid; gap: 12px; }
   .admin-field { display: grid; gap: 6px; }
   .admin-field label { color: var(--muted); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.08em; }
   .admin-input, .admin-select, .admin-textarea {
     padding: 9px 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 2px;
-    color: var(--text); font-family: 'DM Mono', 'Courier New', monospace; font-size: 0.78rem;
+    color: var(--text); font-family: 'Roboto', Arial, sans-serif; font-size: 0.78rem;
   }
   .admin-textarea { resize: vertical; min-height: 76px; line-height: 1.45; }
   .admin-input:focus, .admin-select:focus, .admin-textarea:focus { outline: none; border-color: var(--accent); }
   .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 4px; }
-  .admin-btn { padding: 9px 13px; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 2px; cursor: pointer; font: 700 0.7rem 'Syne', Arial, sans-serif; }
+  .admin-btn { padding: 9px 13px; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 2px; cursor: pointer; font: 700 0.7rem 'Roboto', Arial, sans-serif; }
   .admin-btn:hover { border-color: var(--accent); color: var(--accent); }
   .admin-btn.primary { background: var(--accent); border-color: var(--accent); color: #000; }
   .admin-tools { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
+  /* Ohne flex/min-width behaelt ein <input> im Flex-Container seine Standardbreite
+     (ca. 20 Zeichen) – der Platzhalter wurde dadurch abgeschnitten. */
+  .admin-tools .admin-input { flex: 1 1 auto; min-width: 0; }
   .admin-feature-list { display: grid; gap: 8px; }
   .admin-feature { padding: 13px; border: 1px solid var(--border); border-radius: 2px; background: var(--bg); }
   .admin-feature-head { display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
@@ -443,11 +469,68 @@
   .admin-feature-desc { font-size: 0.75rem; line-height: 1.5; color: var(--text); }
   .admin-feature-notes { margin-top: 7px; color: var(--muted); font-size: 0.68rem; line-height: 1.5; }
   .admin-feature-actions { margin-left: auto; display: flex; gap: 5px; }
-  .admin-mini-btn { color: var(--muted); background: transparent; border: 1px solid var(--border); padding: 3px 7px; border-radius: 2px; cursor: pointer; font: 0.65rem 'DM Mono', Arial, sans-serif; }
+  .admin-mini-btn { color: var(--muted); background: transparent; border: 1px solid var(--border); padding: 3px 7px; border-radius: 2px; cursor: pointer; font: 0.65rem 'Roboto', Arial, sans-serif; }
   .admin-mini-btn:hover { color: var(--accent); border-color: var(--accent); }
   .admin-mini-btn.delete:hover { color: var(--red); border-color: var(--red); }
   .admin-hint { color: var(--muted); font-size: 0.67rem; line-height: 1.5; margin-top: 12px; }
   .zc-dcell.has-custom { box-shadow: inset 0 0 0 2px var(--accent); }
+
+  /* ── ROLLEN / FREIGABE ── */
+  .auth-role {
+    font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 2px 6px; border-radius: 2px; color: var(--muted); border: 1px solid var(--border);
+  }
+  .auth-role.admin { color: var(--accent); border-color: rgba(232,255,71,0.35); background: rgba(232,255,71,0.06); }
+
+  .tab-badge {
+    display: none; margin-left: 6px; padding: 1px 5px; border-radius: 2px;
+    font: 700 0.58rem 'Roboto', Arial, sans-serif;
+    color: var(--orange); background: rgba(255,153,68,0.12); border: 1px solid rgba(255,153,68,0.4);
+  }
+  .tab-badge.visible { display: inline-block; }
+
+  .review-badge {
+    font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.07em;
+    padding: 2px 7px; border-radius: 2px; border: 1px solid;
+  }
+  .review-badge.pending  { color: var(--orange); border-color: rgba(255,153,68,0.4); background: rgba(255,153,68,0.1); }
+  .review-badge.approved { color: var(--green);  border-color: rgba(68,255,136,0.4); background: rgba(68,255,136,0.1); }
+  .review-badge.rejected { color: var(--red);    border-color: rgba(255,68,68,0.4);  background: rgba(255,68,68,0.1); }
+  .admin-mini-btn.approve:hover { color: var(--green); border-color: var(--green); }
+  .admin-feature.pending  { border-left: 2px solid var(--orange); }
+  .admin-feature.rejected { border-left: 2px solid var(--red); }
+  .admin-feature-meta { margin-top: 7px; color: var(--muted); font-size: 0.64rem; line-height: 1.5; }
+  .admin-feature-meta.rejected { color: var(--red); }
+  .admin-msg { font-size: 0.68rem; line-height: 1.5; margin-top: 12px; display: none; }
+  .admin-msg.visible { display: block; }
+  .admin-msg.error { color: var(--red); }
+  .admin-msg.success { color: var(--green); }
+
+  /* Unterreiter im Admin-Tab – flacher als die Haupt-Tabs */
+  .subtabs {
+    width: 100%; display: flex; gap: 4px; margin-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .subtab {
+    padding: 9px 16px; background: transparent; color: var(--muted);
+    font-family: 'Roboto', Arial, sans-serif; font-weight: 700; font-size: 0.72rem;
+    border: none; border-bottom: 2px solid transparent; cursor: pointer;
+    letter-spacing: 0.06em; transition: color 0.15s, border-color 0.15s;
+  }
+  .subtab:hover { color: var(--text); }
+  .subtab.active { color: var(--accent); border-bottom-color: var(--accent); }
+  .admin-subview { display: none; }
+  .admin-subview.active { display: block; }
+
+  .review-panel { margin-top: 20px; }
+  .role-list { display: grid; gap: 6px; }
+  .role-row {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 10px 13px; border: 1px solid var(--border); border-radius: 2px; background: var(--bg);
+  }
+  .role-name { font-size: 0.75rem; color: var(--text); }
+  .role-mail { font-size: 0.66rem; color: var(--muted); }
+  .role-actions { margin-left: auto; display: flex; gap: 5px; align-items: center; }
 
   @media (max-width: 600px) {
     .admin-layout { grid-template-columns: 1fr; gap: 14px; }
@@ -459,14 +542,23 @@
 <body>
 
 <header>
-  <h1>ITB<span>.</span></h1>
+  <div class="header-row">
+    <h1>ITB<span>.</span></h1>
+    <div class="auth-bar" id="auth-bar">
+      <span class="auth-dot" id="auth-dot"></span>
+      <span id="auth-state">Nicht angemeldet</span>
+      <span class="auth-role" id="auth-role" style="display:none"></span>
+      <button class="admin-mini-btn" id="auth-login" type="button" onclick="authShowLogin()">Anmelden</button>
+      <button class="admin-mini-btn" id="auth-logout" type="button" onclick="authSignOut()" style="display:none">Abmelden</button>
+    </div>
+  </div>
 </header>
 
 <nav class="tabs">
   <button class="tab active" data-view="zconfig">Decoder</button>
   <button class="tab" data-view="pruef">KM-Pruefung</button>
   <button class="tab" data-view="merge">PTO-Erkennung</button>
-  <button class="tab" data-view="admin">Admin</button>
+  <button class="tab" data-view="admin" id="tab-admin" style="display:none">Admin<span class="tab-badge" id="tab-review-count"></span></button>
 </nav>
 
 <!-- ════════════════════════════════════════════════════════════════
@@ -588,7 +680,48 @@
      VIEW 4 – ADMIN PORTAL
      ════════════════════════════════════════════════════════════════ -->
 <section class="view" id="view-admin">
-  <div class="admin-wrap">
+
+  <!-- Login-Gate: sichtbar solange niemand angemeldet ist -->
+  <div class="auth-gate" id="auth-gate">
+    <div class="admin-panel">
+      <h2 id="auth-title">Anmelden</h2>
+      <form class="admin-form" id="auth-form">
+        <div class="admin-field">
+          <label for="auth-email">E-Mail</label>
+          <input id="auth-email" class="admin-input" type="email" required autocomplete="email" placeholder="name@firma.at">
+        </div>
+        <div class="admin-field">
+          <label for="auth-password">Passwort</label>
+          <input id="auth-password" class="admin-input" type="password" required minlength="8" autocomplete="current-password" placeholder="mindestens 8 Zeichen">
+        </div>
+        <div class="admin-field" id="auth-name-field" style="display:none">
+          <label for="auth-display-name">Anzeigename</label>
+          <input id="auth-display-name" class="admin-input" type="text" maxlength="60" placeholder="z. B. Lucas N.">
+        </div>
+        <div class="admin-actions">
+          <button type="submit" class="admin-btn primary" id="auth-submit">Anmelden</button>
+        </div>
+      </form>
+      <div class="auth-msg" id="auth-msg"></div>
+      <div class="auth-note">
+        Die Feature-Beschreibungen werden zentral gespeichert und sind fuer alle
+        angemeldeten Kolleg:innen sichtbar.<br><br>
+        <span id="auth-switch-text">Noch kein Zugang?</span>
+        <button type="button" class="auth-switch" id="auth-switch" onclick="authToggleMode()">Registrieren</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="admin-wrap" id="admin-wrap" style="display:none">
+
+    <nav class="subtabs">
+      <button class="subtab active" type="button" id="admin-subtab-features"
+              onclick="adminSetSubview('features')">Feature anlegen</button>
+      <button class="subtab" type="button" id="admin-subtab-roles"
+              onclick="adminSetSubview('roles')">Benutzer &amp; Rollen</button>
+    </nav>
+
+    <div class="admin-subview active" id="admin-sub-features">
     <div class="admin-layout">
       <div class="admin-panel">
         <h2 id="admin-form-title">Feature anlegen</h2>
@@ -622,11 +755,19 @@
             <textarea id="admin-notes" class="admin-textarea" maxlength="1000" placeholder="Voraussetzungen, Firmware-Version, Besonderheiten …"></textarea>
           </div>
           <div class="admin-actions">
-            <button type="submit" class="admin-btn primary">Speichern</button>
+            <button type="submit" class="admin-btn primary" id="admin-submit">Speichern</button>
             <button type="button" class="admin-btn" onclick="adminResetForm()">Zuruecksetzen</button>
           </div>
         </form>
-        <p class="admin-hint">Die Feature-Beschreibungen werden nur in diesem Browser gespeichert.</p>
+        <p class="admin-hint" id="admin-hint-text"></p>
+        <div class="admin-msg" id="admin-msg"></div>
+        <div id="admin-migrate" style="display:none">
+          <p class="admin-hint" id="admin-migrate-text"></p>
+          <div class="admin-actions">
+            <button type="button" class="admin-btn" onclick="adminMigrateLocal()">Lokale Features uebernehmen</button>
+            <button type="button" class="admin-btn" onclick="adminDismissMigrate()">Ignorieren</button>
+          </div>
+        </div>
       </div>
       <div class="admin-panel">
         <h2>Hinterlegte Features <span id="admin-count" class="admin-badge">0</span></h2>
@@ -636,6 +777,33 @@
         <div id="admin-list" class="admin-feature-list"></div>
       </div>
     </div>
+
+    <!-- Freigabe-Warteschlange fuer eingereichte Beschreibungen -->
+    <div class="admin-panel review-panel" id="review-panel" style="display:none">
+      <h2>Offene Freigaben <span id="review-count" class="admin-badge">0</span></h2>
+      <div id="review-list" class="admin-feature-list"></div>
+      <p class="admin-hint">
+        Eingereichte Beschreibungen erscheinen erst nach der Freigabe im Decoder.
+        Eine Freigabe ersetzt den bisher freigegebenen Stand derselben Position.
+      </p>
+    </div>
+
+    </div><!-- /admin-sub-features -->
+
+    <div class="admin-subview" id="admin-sub-roles">
+    <!-- Rollenverwaltung -->
+    <div class="admin-panel roles-panel" id="roles-panel" style="display:none">
+      <h2>Benutzer &amp; Rollen <span id="roles-count" class="admin-badge">0</span></h2>
+      <div id="roles-list" class="role-list"></div>
+      <div class="admin-msg" id="roles-msg"></div>
+      <p class="admin-hint">
+        Nutzer:innen duerfen Eintraege einreichen und ihre eigenen offenen Eintraege
+        bearbeiten. Admins geben frei, lehnen ab und vergeben Rollen. Der letzte Admin
+        kann nicht entzogen werden.
+      </p>
+    </div>
+    </div><!-- /admin-sub-roles -->
+
   </div>
 </section>
 
@@ -646,17 +814,256 @@
 var FROZEN_THRESHOLD = 20;
 
 /* ════════════════════════════════════════════════════════════════
+   SUPABASE / AUTH
+   Projekt: ITB.BERICHTE. Der publishable Key ist oeffentlich –
+   der Schutz liegt komplett in den RLS-Policies: ohne Anmeldung
+   ist kein Lesen oder Schreiben moeglich.
+   ════════════════════════════════════════════════════════════════ */
+var SUPABASE_URL = 'https://jkxxgvhknswhbayvmmoc.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_EJgulPyoOSL_Sz8Li7RssQ_E9XYt2TS';
+
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+var authUser = null;
+var authMode = 'signin'; // 'signin' | 'signup'
+
+function authMsg(text, type) {
+  var el = document.getElementById('auth-msg');
+  el.textContent = text || '';
+  el.className = 'auth-msg' + (text ? ' visible ' + (type || '') : '');
+}
+
+function authToggleMode() {
+  authMode = (authMode === 'signin') ? 'signup' : 'signin';
+  var isSignup = (authMode === 'signup');
+  document.getElementById('auth-title').textContent = isSignup ? 'Registrieren' : 'Anmelden';
+  document.getElementById('auth-submit').textContent = isSignup ? 'Registrieren' : 'Anmelden';
+  document.getElementById('auth-name-field').style.display = isSignup ? 'grid' : 'none';
+  document.getElementById('auth-switch-text').textContent = isSignup ? 'Bereits registriert?' : 'Noch kein Zugang?';
+  document.getElementById('auth-switch').textContent = isSignup ? 'Anmelden' : 'Registrieren';
+  document.getElementById('auth-password').setAttribute('autocomplete', isSignup ? 'new-password' : 'current-password');
+  authMsg('');
+}
+
+document.getElementById('auth-form').addEventListener('submit', function(event) {
+  event.preventDefault();
+  var email = document.getElementById('auth-email').value.trim();
+  var password = document.getElementById('auth-password').value;
+  var submit = document.getElementById('auth-submit');
+  submit.disabled = true;
+  authMsg('Bitte warten …');
+
+  var action;
+  if (authMode === 'signup') {
+    var displayName = document.getElementById('auth-display-name').value.trim();
+    action = sb.auth.signUp({
+      email: email, password: password,
+      options: { data: { display_name: displayName || email.split('@')[0] } }
+    });
+  } else {
+    action = sb.auth.signInWithPassword({ email: email, password: password });
+  }
+
+  action.then(function(res) {
+    submit.disabled = false;
+    if (res.error) { authMsg(res.error.message, 'error'); return; }
+    if (authMode === 'signup' && res.data.user && !res.data.session) {
+      authMsg('Registrierung erfolgreich. Bitte bestaetige den Link in deiner E-Mail und melde dich danach an.', 'success');
+      return;
+    }
+    authMsg('');
+    document.getElementById('auth-form').reset();
+  }).catch(function(err) {
+    submit.disabled = false;
+    authMsg('Verbindungsfehler: ' + err.message, 'error');
+  });
+});
+
+function authSignOut() {
+  sb.auth.signOut();
+}
+
+/* Der Admin-Reiter ist nur fuer Admins sichtbar – der Weg zum Login
+   fuehrt deshalb ueber die Kopfzeile. */
+function authShowLogin() {
+  showView('admin');
+  document.getElementById('auth-email').focus();
+}
+
+/* ── Rollen ──
+   'user'  = darf Eintraege einreichen und eigene, noch nicht freigegebene
+             Eintraege bearbeiten
+   'admin' = gibt frei, lehnt ab und vergibt Rollen
+   Die Rolle steuert hier nur die Oberflaeche. Verbindlich sind die
+   RLS-Policies und Trigger in Supabase: wer kein Admin ist, kann den
+   Freigabestatus serverseitig nicht setzen. */
+var authRole = 'user';
+var adminProfiles = []; // alle Profile – fuer Namensanzeige und Rollenverwaltung
+
+function authIsAdmin() { return authRole === 'admin'; }
+
+function authLoadProfile() {
+  if (!authUser) { authRole = 'user'; return Promise.resolve(); }
+  return sb.from('profiles').select('role').eq('id', authUser.id).maybeSingle()
+    .then(function(res) {
+      authRole = (res.data && res.data.role === 'admin') ? 'admin' : 'user';
+    }, function() { authRole = 'user'; });
+}
+
+/* Rollenabhaengige Teile der Oberflaeche ein-/ausblenden. */
+function authApplyRoleUI() {
+  var isAdmin = authIsAdmin();
+  var chip = document.getElementById('auth-role');
+  chip.textContent = isAdmin ? 'Admin' : 'Nutzer';
+  chip.className = 'auth-role' + (isAdmin ? ' admin' : '');
+  chip.style.display = authUser ? 'inline-block' : 'none';
+
+  // Der ganze Admin-Reiter ist Admins vorbehalten: kein Reiter, kein Inhalt.
+  document.getElementById('tab-admin').style.display    = isAdmin ? 'inline-block' : 'none';
+  document.getElementById('admin-wrap').style.display   = isAdmin ? 'block' : 'none';
+  document.getElementById('review-panel').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('roles-panel').style.display  = isAdmin ? 'block' : 'none';
+  adminSetSubview(adminSubview);
+  // Angemeldet, aber kein Admin: nicht auf einem leeren Reiter stehen lassen.
+  if (authUser && !isAdmin && document.getElementById('view-admin').classList.contains('active')) {
+    showView('zconfig');
+  }
+  document.getElementById('admin-submit').textContent =
+    isAdmin ? 'Speichern & freigeben' : 'Zur Freigabe einreichen';
+  document.getElementById('admin-hint-text').textContent = isAdmin
+    ? 'Als Admin gespeicherte Beschreibungen sind sofort im Decoder sichtbar.'
+    : 'Eingereichte Beschreibungen erscheinen im Decoder, sobald ein Admin sie freigegeben hat.';
+  adminSetFormTitle();
+  reviewUpdateBadge();
+}
+
+/* Alle Profile laden – die Namen haengen an jedem Eintrag, die
+   Rollenverwaltung zeigt sie zusaetzlich als Liste. */
+function profilesLoad() {
+  // Nur Admins sehen Namen und Rollen – sonst gar nicht erst abfragen.
+  if (!authUser || !authIsAdmin()) { adminProfiles = []; rolesRender(); return Promise.resolve(); }
+  return sb.from('profiles').select('id,email,display_name,role,created_at').order('created_at')
+    .then(function(res) {
+      adminProfiles = res.error ? [] : (res.data || []);
+      rolesRender();
+      adminRender();
+      reviewRender();
+    });
+}
+
+function profileName(id) {
+  if (!id) return 'unbekannt';
+  for (var i = 0; i < adminProfiles.length; i++) {
+    if (adminProfiles[i].id === id) {
+      return adminProfiles[i].display_name || adminProfiles[i].email || 'unbekannt';
+    }
+  }
+  return 'unbekannt';
+}
+
+function rolesMsg(text, type) {
+  var el = document.getElementById('roles-msg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'admin-msg' + (text ? ' visible ' + (type || '') : '');
+}
+
+function rolesRender() {
+  var list = document.getElementById('roles-list');
+  if (!list) return;
+  document.getElementById('roles-count').textContent = adminProfiles.length;
+  if (!authIsAdmin()) { list.innerHTML = ''; return; }
+  if (!adminProfiles.length) {
+    list.innerHTML = '<div class="zc-empty">Keine Benutzer geladen.</div>';
+    return;
+  }
+  var html = '';
+  adminProfiles.forEach(function(profile) {
+    var isAdminRole = (profile.role === 'admin');
+    var self = authUser && profile.id === authUser.id;
+    var nextRole = isAdminRole ? 'user' : 'admin';
+    html += '<div class="role-row">' +
+      '<span class="role-name">' + zcEsc(profile.display_name || '–') + (self ? ' (du)' : '') + '</span>' +
+      '<span class="role-mail">' + zcEsc(profile.email || '') + '</span>' +
+      '<span class="role-actions">' +
+        '<span class="auth-role' + (isAdminRole ? ' admin' : '') + '">' + (isAdminRole ? 'Admin' : 'Nutzer') + '</span>' +
+        '<button class="admin-mini-btn' + (isAdminRole ? '' : ' approve') + '" type="button" ' +
+          'onclick="rolesSet(\'' + profile.id + '\',\'' + nextRole + '\')">' +
+          (isAdminRole ? 'Adminrechte entziehen' : 'Zum Admin machen') + '</button>' +
+      '</span>' +
+    '</div>';
+  });
+  list.innerHTML = html;
+}
+
+function rolesSet(id, role) {
+  if (!authIsAdmin()) return;
+  var self = authUser && id === authUser.id;
+  if (self && role !== 'admin' &&
+      !confirm('Dir selbst die Adminrechte entziehen? Danach kannst du nichts mehr freigeben.')) return;
+  sb.from('profiles').update({ role: role }).eq('id', id).then(function(res) {
+    if (res.error) { rolesMsg('Rollenwechsel fehlgeschlagen: ' + res.error.message, 'error'); return; }
+    rolesMsg('Rolle aktualisiert.', 'success');
+    if (self) {
+      authLoadProfile().then(function() {
+        authApplyRoleUI();
+        adminLoadFeatures();
+        profilesLoad();
+      });
+    } else {
+      profilesLoad();
+    }
+  });
+}
+
+function authApplyState(user) {
+  authUser = user || null;
+  var signedIn = !!authUser;
+  var name = signedIn ? (authUser.user_metadata && authUser.user_metadata.display_name ? authUser.user_metadata.display_name : authUser.email) : '';
+
+  document.getElementById('auth-dot').className = 'auth-dot' + (signedIn ? ' on' : '');
+  document.getElementById('auth-state').innerHTML = signedIn
+    ? '<span class="auth-user">' + zcEsc(name) + '</span>'
+    : 'Nicht angemeldet';
+  document.getElementById('auth-logout').style.display = signedIn ? 'inline-block' : 'none';
+  document.getElementById('auth-login').style.display  = signedIn ? 'none' : 'inline-block';
+  document.getElementById('auth-gate').style.display = signedIn ? 'none' : 'block';
+
+  if (signedIn) {
+    // Reihenfolge: Rolle -> Profile (fuer die Namen an den Eintraegen) -> Features
+    authLoadProfile().then(function() {
+      authApplyRoleUI();
+      return profilesLoad();
+    }).then(adminLoadFeatures);
+  } else {
+    authRole = 'user';
+    adminFeatures = [];
+    adminProfiles = [];
+    authApplyRoleUI();
+    rolesRender();
+    rolesMsg('');
+    if (zcBits.length) zcRender();
+  }
+}
+
+sb.auth.getSession().then(function(res) {
+  authApplyState(res.data.session ? res.data.session.user : null);
+});
+sb.auth.onAuthStateChange(function(_event, session) {
+  authApplyState(session ? session.user : null);
+});
+
+/* ════════════════════════════════════════════════════════════════
    TAB SWITCHING
    ════════════════════════════════════════════════════════════════ */
+function showView(name) {
+  document.querySelectorAll('.tab').forEach(function(t) { t.classList.toggle('active', t.dataset.view === name); });
+  document.querySelectorAll('.view').forEach(function(v) { v.classList.toggle('active', v.id === 'view-' + name); });
+  // Beim Oeffnen neu laden – es koennen zwischenzeitlich Eintraege eingereicht worden sein.
+  if (name === 'admin' && authUser) { adminLoadFeatures(); profilesLoad(); }
+}
+
 document.querySelectorAll('.tab').forEach(function(tab) {
-  tab.addEventListener('click', function() {
-    var view = tab.dataset.view;
-    document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-    document.querySelectorAll('.view').forEach(function(v) { v.classList.remove('active'); });
-    tab.classList.add('active');
-    document.getElementById('view-' + view).classList.add('active');
-    if (view === 'admin') adminRender();
-  });
+  tab.addEventListener('click', function() { showView(tab.dataset.view); });
 });
 
 /* ════════════════════════════════════════════════════════════════
@@ -1374,12 +1781,13 @@ var EVENT_DEFS = {
 };
 
 /* ── Eigene Angaben (Admin-Portal) ──
-   Werden lokal im Browser gespeichert und ueberschreiben/ergaenzen die
-   fest hinterlegten Beschreibungen im Decoder – z.B. fuer als
-   "Dedicated customer feature" markierte Bits. */
-var ADMIN_STORAGE_KEY = 'itb-admin-features-v1';
+   Liegen zentral in Supabase (Tabelle decoder_features) und
+   ueberschreiben/ergaenzen die fest hinterlegten Beschreibungen im
+   Decoder – z.B. fuer als "Dedicated customer feature" markierte Bits.
+   Sichtbar nur fuer angemeldete Nutzer (RLS). */
+var ADMIN_STORAGE_KEY = 'itb-admin-features-v1'; // nur noch fuer die Uebernahme alter lokaler Daten
 var ADMIN_TYPES = ['ZCONFIG', 'ZCONFIG2', 'ZCONFIG3', 'ZCONFIG4', 'ZVALUE', 'ZVALUE2', 'DATACONFIG'];
-var adminFeatures = adminLoadFeatures();
+var adminFeatures = [];
 
 function adminFeatureKey(type, position) {
   return type + ':' + position;
@@ -1395,12 +1803,50 @@ function adminNormalizeFeature(item) {
     position: position,
     customer: String(item.customer || '').trim().slice(0, 100),
     description: description.slice(0, 1000),
-    notes: String(item.notes || '').trim().slice(0, 1000),
-    updatedAt: item.updatedAt || new Date().toISOString()
+    notes: String(item.notes || '').trim().slice(0, 1000)
   };
 }
 
+/* Features aus Supabase laden und danach Admin-Liste + Decoder neu zeichnen. */
 function adminLoadFeatures() {
+  if (!authUser) { adminFeatures = []; return Promise.resolve(); }
+  // Sichtbar sind laut RLS: alles Freigegebene, die eigenen Einreichungen
+  // und – fuer Admins – zusaetzlich alle offenen Vorschlaege.
+  return sb.from('decoder_features')
+    .select('id,type,position,customer,description,notes,status,review_note,created_by,reviewed_by,reviewed_at,updated_at')
+    .order('type').order('position')
+    .then(function(res) {
+      if (res.error) {
+        adminSetStatus('Laden fehlgeschlagen: ' + res.error.message, 'error');
+        return;
+      }
+      adminFeatures = (res.data || []).map(function(row) {
+        return {
+          id: row.id, type: row.type, position: row.position,
+          customer: row.customer || '', description: row.description || '',
+          notes: row.notes || '', status: row.status || 'pending',
+          reviewNote: row.review_note || '', createdBy: row.created_by,
+          reviewedBy: row.reviewed_by, reviewedAt: row.reviewed_at,
+          updatedAt: row.updated_at
+        };
+      });
+      adminRender();
+      reviewRender();
+      reviewUpdateBadge();
+      adminCheckLocalLeftovers();
+      if (zcBits.length) zcRender();
+    });
+}
+
+function adminSetStatus(text, type) {
+  var el = document.getElementById('admin-msg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'admin-msg' + (text ? ' visible ' + (type || '') : '');
+}
+
+/* ── Einmalige Uebernahme frueher lokal gespeicherter Features ── */
+function adminReadLocalFeatures() {
   try {
     var stored = JSON.parse(localStorage.getItem(ADMIN_STORAGE_KEY) || '[]');
     if (!Array.isArray(stored)) return [];
@@ -1415,16 +1861,72 @@ function adminLoadFeatures() {
   }
 }
 
-function adminSaveFeatures() {
-  localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(adminFeatures));
+function adminCheckLocalLeftovers() {
+  var local = adminReadLocalFeatures();
+  var box = document.getElementById('admin-migrate');
+  if (!local.length) { box.style.display = 'none'; return; }
+  document.getElementById('admin-migrate-text').style.color = 'var(--muted)';
+  document.getElementById('admin-migrate-text').textContent =
+    local.length + ' Feature(s) aus der frueheren lokalen Speicherung gefunden. '
+    + 'Uebernehmen legt sie zentral an (bereits vorhandene Positionen werden uebersprungen).';
+  box.style.display = 'block';
 }
 
+function adminMigrateLocal() {
+  var local = adminReadLocalFeatures();
+  if (!local.length || !authUser) return;
+  var existing = {};
+  adminFeatures.forEach(function(f) { existing[adminFeatureKey(f.type, f.position)] = true; });
+  var rows = local.filter(function(f) {
+    return !existing[adminFeatureKey(f.type, f.position)];
+  }).map(function(f) {
+    return {
+      type: f.type, position: f.position, customer: f.customer,
+      description: f.description, notes: f.notes,
+      created_by: authUser.id, updated_by: authUser.id
+    };
+  });
+  if (!rows.length) {
+    localStorage.removeItem(ADMIN_STORAGE_KEY);
+    adminSetStatus('Alle lokalen Features waren bereits zentral vorhanden.', '');
+    setTimeout(adminCheckLocalLeftovers, 2500);
+    return;
+  }
+  sb.from('decoder_features').insert(rows).then(function(res) {
+    if (res.error) { adminSetStatus('Uebernahme fehlgeschlagen: ' + res.error.message, 'error'); return; }
+    localStorage.removeItem(ADMIN_STORAGE_KEY);
+    adminLoadFeatures();
+  });
+}
+
+function adminDismissMigrate() {
+  document.getElementById('admin-migrate').style.display = 'none';
+}
+
+/* Im Decoder wird ausschliesslich der freigegebene Stand angezeigt –
+   offene oder abgelehnte Einreichungen bleiben im Admin-Tab. */
 function adminGetFeature(type, position) {
   var key = adminFeatureKey(type, position);
   for (var i = 0; i < adminFeatures.length; i++) {
-    if (adminFeatureKey(adminFeatures[i].type, adminFeatures[i].position) === key) return adminFeatures[i];
+    var feature = adminFeatures[i];
+    if (feature.status === 'approved' && adminFeatureKey(feature.type, feature.position) === key) return feature;
   }
   return null;
+}
+
+function adminFeatureById(id) {
+  for (var i = 0; i < adminFeatures.length; i++) {
+    if (adminFeatures[i].id === id) return adminFeatures[i];
+  }
+  return null;
+}
+
+/* Wer darf einen vorhandenen Eintrag anfassen: Admins alles, alle anderen
+   nur die eigenen, noch nicht freigegebenen Einreichungen. Dieselbe Regel
+   steht als RLS-Policy in Supabase. */
+function adminCanEdit(feature) {
+  if (authIsAdmin()) return true;
+  return !!authUser && feature.createdBy === authUser.id && feature.status !== 'approved';
 }
 
 function zcTypeForMode() {
@@ -1470,7 +1972,8 @@ function zcParse() {
     document.getElementById('zc-filter-row').style.display = 'none';
     document.getElementById('zc-dcview-row').style.display = 'none';
     document.getElementById('zc-search-row').style.display = 'none';
-    out.innerHTML = zcParseCheckTmr(raw);
+    var ctmrHtml = zcParseCheckTmr(raw);
+    out.innerHTML = ctmrHtml;
     return;
   }
 
@@ -1480,7 +1983,8 @@ function zcParse() {
     document.getElementById('zc-filter-row').style.display = 'none';
     document.getElementById('zc-dcview-row').style.display = 'none';
     document.getElementById('zc-search-row').style.display = 'none';
-    out.innerHTML = zcParseEvent(raw);
+    var eventHtml = zcParseEvent(raw);
+    out.innerHTML = eventHtml;
     return;
   }
 
@@ -1874,35 +2378,128 @@ function zcRenderDataGrid() {
 /* ════════════════════════════════════════════════════════════════
    VIEW 4 – ADMIN PORTAL (Feature anlegen)
    ════════════════════════════════════════════════════════════════ */
-function adminResetForm() {
-  document.getElementById('admin-form').reset();
-  document.getElementById('admin-form-title').textContent = 'Feature anlegen';
-  document.getElementById('admin-position').removeAttribute('data-original-key');
+var REVIEW_LABELS = { pending: 'Offen', approved: 'Freigegeben', rejected: 'Abgelehnt' };
+
+/* ── Unterreiter im Admin-Tab ──
+   Gleiches Muster wie die Haupt-Tabs: .active auf Button und Bereich,
+   kein Router. */
+var adminSubview = 'features';
+
+function adminSetSubview(name) {
+  adminSubview = name;
+  ['features', 'roles'].forEach(function(key) {
+    document.getElementById('admin-subtab-' + key).classList.toggle('active', key === name);
+    document.getElementById('admin-sub-' + key).classList.toggle('active', key === name);
+  });
 }
 
-function adminEdit(type, position) {
-  var feature = adminGetFeature(type, position);
-  if (!feature) return;
+function adminSetFormTitle() {
+  var editing = !!document.getElementById('admin-position').getAttribute('data-edit-id');
+  document.getElementById('admin-form-title').textContent =
+    editing ? 'Eintrag bearbeiten' : (authIsAdmin() ? 'Feature anlegen' : 'Eintrag vorschlagen');
+}
+
+function adminResetForm() {
+  document.getElementById('admin-form').reset();
+  document.getElementById('admin-position').removeAttribute('data-edit-id');
+  adminSetFormTitle();
+}
+
+function adminEdit(id) {
+  var feature = adminFeatureById(id);
+  if (!feature || !adminCanEdit(feature)) return;
   document.getElementById('admin-type').value = feature.type;
   document.getElementById('admin-position').value = feature.position;
-  document.getElementById('admin-position').setAttribute('data-original-key', adminFeatureKey(feature.type, feature.position));
+  document.getElementById('admin-position').setAttribute('data-edit-id', feature.id);
   document.getElementById('admin-customer').value = feature.customer;
   document.getElementById('admin-description').value = feature.description;
   document.getElementById('admin-notes').value = feature.notes;
-  document.getElementById('admin-form-title').textContent = 'Feature bearbeiten';
+  adminSetFormTitle();
+  adminSetStatus('');
   document.getElementById('admin-description').focus();
 }
 
-function adminDelete(type, position) {
-  var feature = adminGetFeature(type, position);
-  if (!feature || !confirm(type + ' Position ' + position + ' wirklich löschen?')) return;
-  adminFeatures = adminFeatures.filter(function(item) {
-    return !(item.type === type && item.position === position);
+function adminDelete(id) {
+  var feature = adminFeatureById(id);
+  if (!feature || !adminCanEdit(feature)) return;
+  var question = (feature.status === 'approved')
+    ? feature.type + ' Position ' + feature.position + ' wirklich loeschen? Das gilt fuer alle Kolleg:innen.'
+    : 'Eigene Einreichung zu ' + feature.type + ' Position ' + feature.position + ' zurueckziehen?';
+  if (!confirm(question)) return;
+  sb.from('decoder_features').delete().eq('id', feature.id).then(function(res) {
+    if (res.error) { adminSetStatus('Loeschen fehlgeschlagen: ' + res.error.message, 'error'); return; }
+    adminResetForm();
+    adminLoadFeatures();
   });
-  adminSaveFeatures();
-  adminResetForm();
-  adminRender();
-  if (zcBits.length) zcRender();
+}
+
+/* ── Freigaben (nur Admins) ── */
+function reviewPendingFeatures() {
+  return adminFeatures.filter(function(feature) { return feature.status === 'pending'; });
+}
+
+function reviewUpdateBadge() {
+  var badge = document.getElementById('tab-review-count');
+  if (!badge) return;
+  var open = authIsAdmin() ? reviewPendingFeatures().length : 0;
+  badge.textContent = open;
+  badge.className = 'tab-badge' + (open ? ' visible' : '');
+}
+
+function reviewRender() {
+  var list = document.getElementById('review-list');
+  if (!list) return;
+  var pending = reviewPendingFeatures();
+  document.getElementById('review-count').textContent = pending.length;
+  if (!authIsAdmin()) { list.innerHTML = ''; return; }
+  if (!pending.length) {
+    list.innerHTML = '<div class="zc-empty">Keine offenen Freigaben.</div>';
+    return;
+  }
+  var html = '';
+  pending.forEach(function(feature) {
+    var live = adminGetFeature(feature.type, feature.position);
+    html += '<article class="admin-feature pending">' +
+      '<div class="admin-feature-head">' +
+        '<span class="admin-badge">' + zcEsc(feature.type) + ' · ' + feature.position + '</span>' +
+        (feature.customer ? '<span class="admin-customer">' + zcEsc(feature.customer) + '</span>' : '') +
+        '<span class="admin-feature-actions">' +
+          '<button class="admin-mini-btn approve" type="button" onclick="reviewApprove(\'' + feature.id + '\')">Freigeben</button>' +
+          '<button class="admin-mini-btn delete" type="button" onclick="reviewReject(\'' + feature.id + '\')">Ablehnen</button>' +
+          '<button class="admin-mini-btn" type="button" onclick="adminEdit(\'' + feature.id + '\')">Bearbeiten</button>' +
+        '</span>' +
+      '</div>' +
+      '<div class="admin-feature-desc">' + zcEsc(feature.description) + '</div>' +
+      (feature.notes ? '<div class="admin-feature-notes">Hinweis: ' + zcEsc(feature.notes) + '</div>' : '') +
+      '<div class="admin-feature-meta">Eingereicht von ' + zcEsc(profileName(feature.createdBy)) +
+        (live ? ' · ersetzt bei Freigabe: „' + zcEsc(live.description) + '“' : '') + '</div>' +
+    '</article>';
+  });
+  list.innerHTML = html;
+}
+
+function reviewApprove(id) {
+  if (!authIsAdmin()) return;
+  // RPC, damit Freigabe und Ersetzen des bisherigen Stands zusammen passieren.
+  sb.rpc('approve_decoder_feature', { p_id: id }).then(function(res) {
+    if (res.error) { adminSetStatus('Freigabe fehlgeschlagen: ' + res.error.message, 'error'); return; }
+    adminSetStatus('Eintrag freigegeben.', 'success');
+    adminLoadFeatures();
+  });
+}
+
+function reviewReject(id) {
+  if (!authIsAdmin()) return;
+  var note = prompt('Grund der Ablehnung (optional, wird dem/der Einreichenden angezeigt):', '');
+  if (note === null) return;
+  sb.from('decoder_features')
+    .update({ status: 'rejected', review_note: String(note).slice(0, 500), updated_by: authUser.id })
+    .eq('id', id)
+    .then(function(res) {
+      if (res.error) { adminSetStatus('Ablehnen fehlgeschlagen: ' + res.error.message, 'error'); return; }
+      adminSetStatus('Eintrag abgelehnt.', '');
+      adminLoadFeatures();
+    });
 }
 
 function adminRender() {
@@ -1911,9 +2508,10 @@ function adminRender() {
   if (!list || !count) return;
   var query = (document.getElementById('admin-search').value || '').trim().toLowerCase();
   var features = adminFeatures.slice().sort(function(a, b) {
-    return a.type.localeCompare(b.type) || a.position - b.position;
+    return a.type.localeCompare(b.type) || a.position - b.position || a.status.localeCompare(b.status);
   }).filter(function(feature) {
-    return !query || [feature.type, feature.position, feature.customer, feature.description, feature.notes].join(' ').toLowerCase().indexOf(query) !== -1;
+    return !query || [feature.type, feature.position, feature.customer, feature.description,
+                      feature.notes, REVIEW_LABELS[feature.status]].join(' ').toLowerCase().indexOf(query) !== -1;
   });
   count.textContent = adminFeatures.length;
   if (!features.length) {
@@ -1922,17 +2520,28 @@ function adminRender() {
   }
   var html = '';
   features.forEach(function(feature) {
-    html += '<article class="admin-feature">' +
+    var canEdit = adminCanEdit(feature);
+    var meta = 'Eingereicht von ' + zcEsc(profileName(feature.createdBy));
+    if (feature.status !== 'pending' && feature.reviewedBy) {
+      meta += ' · ' + (feature.status === 'approved' ? 'freigegeben' : 'abgelehnt') +
+              ' von ' + zcEsc(profileName(feature.reviewedBy));
+    }
+    html += '<article class="admin-feature ' + feature.status + '">' +
       '<div class="admin-feature-head">' +
         '<span class="admin-badge">' + zcEsc(feature.type) + ' · ' + feature.position + '</span>' +
+        '<span class="review-badge ' + feature.status + '">' + REVIEW_LABELS[feature.status] + '</span>' +
         (feature.customer ? '<span class="admin-customer">' + zcEsc(feature.customer) + '</span>' : '') +
         '<span class="admin-feature-actions">' +
-          '<button class="admin-mini-btn" type="button" onclick="adminEdit(\'' + feature.type + '\',' + feature.position + ')">Bearbeiten</button>' +
-          '<button class="admin-mini-btn delete" type="button" onclick="adminDelete(\'' + feature.type + '\',' + feature.position + ')">Löschen</button>' +
+          (canEdit ? '<button class="admin-mini-btn" type="button" onclick="adminEdit(\'' + feature.id + '\')">Bearbeiten</button>' : '') +
+          (canEdit ? '<button class="admin-mini-btn delete" type="button" onclick="adminDelete(\'' + feature.id + '\')">Löschen</button>' : '') +
+          (authIsAdmin() && feature.status !== 'approved' ? '<button class="admin-mini-btn approve" type="button" onclick="reviewApprove(\'' + feature.id + '\')">Freigeben</button>' : '') +
         '</span>' +
       '</div>' +
       '<div class="admin-feature-desc">' + zcEsc(feature.description) + '</div>' +
       (feature.notes ? '<div class="admin-feature-notes">Hinweis: ' + zcEsc(feature.notes) + '</div>' : '') +
+      '<div class="admin-feature-meta">' + meta + '</div>' +
+      (feature.status === 'rejected' && feature.reviewNote
+        ? '<div class="admin-feature-meta rejected">Begruendung: ' + zcEsc(feature.reviewNote) + '</div>' : '') +
     '</article>';
   });
   list.innerHTML = html;
@@ -1940,6 +2549,7 @@ function adminRender() {
 
 document.getElementById('admin-form').addEventListener('submit', function(event) {
   event.preventDefault();
+  if (!authUser) return;
   var feature = adminNormalizeFeature({
     type: document.getElementById('admin-type').value,
     position: document.getElementById('admin-position').value,
@@ -1948,16 +2558,50 @@ document.getElementById('admin-form').addEventListener('submit', function(event)
     notes: document.getElementById('admin-notes').value
   });
   if (!feature) return;
-  var originalKey = document.getElementById('admin-position').getAttribute('data-original-key');
-  adminFeatures = adminFeatures.filter(function(item) {
-    return adminFeatureKey(item.type, item.position) !== adminFeatureKey(feature.type, feature.position) && adminFeatureKey(item.type, item.position) !== originalKey;
+
+  var row = {
+    type: feature.type, position: feature.position, customer: feature.customer,
+    description: feature.description, notes: feature.notes,
+    updated_by: authUser.id
+  };
+
+  // Zielzeile: der ausdruecklich bearbeitete Eintrag, sonst der eigene Stand
+  // zu dieser Position. Alles andere wird als neue Einreichung angelegt.
+  var editId = document.getElementById('admin-position').getAttribute('data-edit-id');
+  var target = editId ? adminFeatureById(editId) : adminTargetRow(feature.type, feature.position);
+  var request;
+  if (target && adminCanEdit(target)) {
+    request = sb.from('decoder_features').update(row).eq('id', target.id);
+  } else {
+    row.created_by = authUser.id;
+    request = sb.from('decoder_features').insert(row);
+  }
+
+  request.then(function(res) {
+    if (res.error) { adminSetStatus('Speichern fehlgeschlagen: ' + res.error.message, 'error'); return; }
+    adminResetForm();
+    adminSetStatus(authIsAdmin()
+      ? 'Gespeichert und freigegeben.'
+      : 'Eingereicht – ein Admin muss den Eintrag noch freigeben.', 'success');
+    adminLoadFeatures();
   });
-  adminFeatures.push(feature);
-  adminSaveFeatures();
-  adminResetForm();
-  adminRender();
-  if (zcBits.length) zcRender();
 });
+
+/* Ohne ausdrueckliches Bearbeiten: Admins pflegen den freigegebenen Stand
+   der Position weiter, alle anderen ihre eigene offene Einreichung. */
+function adminTargetRow(type, position) {
+  var key = adminFeatureKey(type, position);
+  for (var i = 0; i < adminFeatures.length; i++) {
+    var feature = adminFeatures[i];
+    if (adminFeatureKey(feature.type, feature.position) !== key) continue;
+    if (authIsAdmin()) {
+      if (feature.status === 'approved') return feature;
+    } else if (authUser && feature.createdBy === authUser.id && feature.status !== 'approved') {
+      return feature;
+    }
+  }
+  return null;
+}
 
 /* ════════════════════════════════════════════════════════════════
    VIEW 3 – PTO-ERKENNUNG
