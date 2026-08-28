@@ -866,7 +866,8 @@
           HTML-Datei <code>.htm</code> und dem gleichnamigen Ordner <code>_files</code> daneben.
           Bilder und alle Inhalte bis zum Ende der Seite werden uebernommen. Die Umwandlung
           passiert vollstaendig lokal – es wird nichts hochgeladen, die fertige PDF wird
-          direkt heruntergeladen.
+          direkt heruntergeladen. Statt des Ordners darueber lassen sich auch die HTML-Datei
+          und der <code>_files</code>-Ordner direkt nebeneinander ablegen.
         </span>
       </span></h2>
 
@@ -877,14 +878,14 @@
         <span class="drop-icon">📂</span>
         <div class="drop-label">Anleitungs-Ordner hier ablegen</div>
         <div class="drop-sub">
-          Genau eine HTML-Datei und der gleichnamige Ordner daneben, zum Beispiel
-          <code>Mercedes EQE.htm</code> und <code>Mercedes EQE_files</code>. Beides zusammen
-          ablegen oder gleich den Ordner darueber.
+          Lege den Ordner ab, in dem beides zusammen liegt: genau eine HTML-Datei und der
+          gleichnamige Ordner daneben, zum Beispiel <code>Mercedes EQE.htm</code> und
+          <code>Mercedes EQE_files</code>.
         </div>
         <div class="file-row">
           <label for="import-folder" class="btn-choose">📁 Ordner auswaehlen</label>
           <button type="button" class="btn-run" id="import-submit"
-                  onclick="impRunImport()" disabled>▶ Als PDF erzeugen</button>
+                  onclick="impRunImport()" disabled>▶ PDF erzeugen</button>
         </div>
       </div>
 
