@@ -14,7 +14,7 @@ Produktzweck, nicht verhandelbare Leitplanken, Roadmap und offene Produktfragen.
 
 ## Das Wichtigste in Kürze
 
-Die gesamte App ist **eine Datei**: [index.html](index.html) (~2750 Zeilen, HTML + CSS +
+Die gesamte App ist **eine Datei**: [index.html](index.html) (~3250 Zeilen, HTML + CSS +
 JS inline). Kein Build-System, kein Paketmanager, kein Linter, keine Tests, keine CI.
 
 ```bash
@@ -33,8 +33,9 @@ Drei Punkte, an denen man sich am schnellsten vergreift:
 2. **Die Freigabepflicht steht in der Datenbank, nicht im Frontend** — Trigger
    `guard_review()` und `guard_profile_role()`. Nie darauf verlassen, dass die
    Oberfläche einen Button versteckt.
-3. **XLSX-Inhalte verlassen den Browser nie.** Keine Analytics, kein Tracking,
-   kein Upload von Tabelleninhalten.
+3. **Hochgeladene Dateien verlassen den Browser nie.** Weder XLSX-Inhalte noch die
+   Anleitungs-Ordner des Import-Reiters. Keine Analytics, kein Tracking, kein Upload
+   von Dateiinhalten.
 
 Der angewendete Datenbankstand liegt als SQL unter
 [supabase/schema.sql](supabase/schema.sql).

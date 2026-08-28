@@ -10,6 +10,7 @@ ITB.BERICHTE ist ein internes Werkzeug für die Auswertung von Telematik-/Fahrze
 - **KM-Pruefung** — prüft Fahrten-Exporte (XLSX) auf Kilometerstand-Fehler (Sprünge, eingefrorene Serien), um fehlerhafte oder manipulierte Fahrtenbuch-Daten zu erkennen.
 - **PTO-Erkennung** — erkennt aus Detailberichten, welche Fahrzeuge Zapfwellen-/Zusatzaggregat-Nutzung (PTO) hatten.
 - **Admin** — Wissens-Overlay, mit dem eigene Beschreibungstexte auf einzelne Decoder-Bits gelegt werden können, ohne die eingebauten Lookup-Tabellen zu verändern.
+- **Import** (Unterreiter im Admin) — macht aus einer im Browser gespeicherten Hersteller-Anleitung (`.htm` plus `_files`-Ordner) eine durchgehende PDF zum Herunterladen.
 
 Zielgruppe: interne Nutzung durch den/die Entwickler:in bzw. wenige technisch versierte Kolleg:innen, kein Endkunden-Produkt. Alle vier Tabs sind eigenständige Werkzeuge, die dieselbe Datenbasis (Telematikgeräte/Fahrzeugberichte desselben Kontexts) aus unterschiedlichen Blickwinkeln bearbeiten.
 
@@ -30,6 +31,14 @@ Diese Punkte sind bewusste Architekturentscheidungen und dürfen nicht ohne ausd
 > Aktuell ist kein weiterer Punkt konkret priorisiert. Weitere Prioritäten trägt der/die Projektverantwortliche hier nach — nicht spekulativ auffüllen.
 
 ## Erledigt
+
+- **Import-Unterreiter: Web-Anleitung als PDF** *(28.08.2026)* — aus der Schwester-App [itb-wissensdatenbank](https://github.com/Lucasniii/itb-wissensdatenbank) übernommen. Man wählt den Ordner, in dem eine mit „Seite speichern unter“ abgelegte Hersteller-Anleitung liegt (genau eine `.htm`-Datei plus der gleichnamige `_files`-Ordner); daraus wird eine durchgehende A4-PDF gebaut und sofort heruntergeladen.
+
+  **Unterschied zur Vorlage:** dort landet das Ergebnis als Entwurf in der Wissensdatenbank samt KI-Suchindex. Diese App hat keine Wissensdatenbank — hier wird die PDF nur erzeugt und heruntergeladen. Die Dateien verlassen den Browser nicht, es geht nichts an Supabase (Leitplanke 2).
+
+  **Zwei neue CDN-Abhängigkeiten** (beide mit SRI-Hash und `crossorigin`, siehe [CLAUDE.md](CLAUDE.md)): `html2canvas` 1.4.1 rastert die aufbereitete Seite, `jspdf` 4.2.1 schneidet sie in A4-Seiten. Ohne die beiden ist das Feature nicht baubar; jsPDF ist bewusst 4.x statt der 2.5.1 der Vorlage, weil ältere Versionen bekannte Schwachstellen haben — dieselbe Überlegung wie beim SheetJS-Wechsel.
+
+  Sicherheit: aus der fremden Seite wird nichts ausgeführt. `script`, `iframe`, `form`, alle `on*`-Attribute und alle `href`s werden vor dem Rendern entfernt, aufgebaut wird in einem eigenen Off-Screen-`srcdoc`-iframe.
 
 - **Supabase-Anbindung mit Mehrbenutzer-Login** *(23.08.2026)* — eigenes Projekt `ITB.BERICHTE` (`jkxxgvhknswhbayvmmoc`, eu-central-1); Admin-Feature-Beschreibungen liegen zentral statt in `localStorage` und sind für alle angemeldeten Kolleg:innen sichtbar. Login per E-Mail/Passwort. Einmalige Übernahme alter lokaler Features ist im Admin-Tab eingebaut.
 - **Rollen & Freigabe-Workflow** *(23.08.2026)* — zwei Rollen in `profiles.role`: **user** darf einreichen und eigene, noch nicht freigegebene Decoder-Beschreibungen bearbeiten; **admin** gibt frei, lehnt ab und vergibt Rollen. Neue Registrierungen sind immer `user`. Eingereichtes erscheint erst nach Freigabe im Decoder; ein Änderungsvorschlag zu einer bereits freigegebenen Position verdrängt den freigegebenen Stand nicht, sondern liegt daneben, bis ein Admin ihn freigibt (dann ersetzt er ihn). Durchgesetzt wird das serverseitig durch Trigger (`guard_review`, `guard_profile_role`) und RLS — der Client kann den Status nicht setzen, auch nicht mit manipulierten Requests. Der letzte Admin kann sich die Rechte nicht selbst entziehen; Notausgang bleibt der Supabase-SQL-Editor.

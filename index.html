@@ -17,6 +17,12 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.58.0/dist/umd/supabase.js"
         integrity="sha384-KX6Y/AMIv9qA8TLCDul2JatZWeyrJVgj3Xu/0r30Nr05xO8md1+wHAgtdsRV9LoE"
         crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"
+        integrity="sha384-ZZ1pncU3bQe8y31yfZdMFdSpttDoPmOZg2wguVK9almUodir1PghgT0eY7Mrty8H"
+        crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"
+        integrity="sha384-qovJwSBbRDPP5cEjCp8S0UP66wrvnjaa60XMOGzTNanrThcrGfXfnZkvgY8N1KT3"
+        crossorigin="anonymous"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap');
 
@@ -467,6 +473,8 @@
   .admin-btn { padding: 9px 13px; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 2px; cursor: pointer; font: 700 0.7rem 'Roboto', Arial, sans-serif; }
   .admin-btn:hover { border-color: var(--accent); color: var(--accent); }
   .admin-btn.primary { background: var(--accent); border-color: var(--accent); color: #000; }
+  .admin-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .admin-btn:disabled:hover { border-color: var(--border); color: var(--text); }
   .admin-tools { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
   /* Ohne flex/min-width behaelt ein <input> im Flex-Container seine Standardbreite
      (ca. 20 Zeichen) – der Platzhalter wurde dadurch abgeschnitten. */
@@ -531,6 +539,23 @@
   .subtab.active { color: var(--accent); border-bottom-color: var(--accent); }
   .admin-subview { display: none; }
   .admin-subview.active { display: block; }
+
+  /* ── WEB-ANLEITUNG IMPORTIEREN ── */
+  .import-copy { color: var(--text); font-size: 0.75rem; line-height: 1.55; margin-bottom: 16px; }
+  .import-copy code, .import-note code {
+    padding: 1px 5px; background: var(--bg); border: 1px solid var(--border); border-radius: 2px;
+    font-family: 'Roboto', Arial, sans-serif; font-size: 0.72rem; color: var(--text);
+  }
+  .import-actions .btn-choose { padding: 9px 15px; font-size: 0.7rem; letter-spacing: 0.06em; }
+  .import-note {
+    display: flex; gap: 7px; align-items: flex-start; margin-top: 14px;
+    color: var(--muted); font-size: 0.67rem; line-height: 1.5;
+  }
+  .import-note::before {
+    content: 'i'; flex: 0 0 15px; width: 15px; height: 15px; display: inline-grid; place-items: center;
+    border: 1px solid var(--border); border-radius: 50%; color: var(--accent);
+    font: 700 0.6rem 'Roboto', Arial, sans-serif;
+  }
 
   .review-panel { margin-top: 20px; }
   .role-list { display: grid; gap: 6px; }
@@ -729,6 +754,8 @@
               onclick="adminSetSubview('features')">Feature anlegen</button>
       <button class="subtab" type="button" id="admin-subtab-roles"
               onclick="adminSetSubview('roles')">Benutzer &amp; Rollen</button>
+      <button class="subtab" type="button" id="admin-subtab-import"
+              onclick="adminSetSubview('import')">Import</button>
     </nav>
 
     <div class="admin-subview active" id="admin-sub-features">
@@ -813,6 +840,32 @@
       </p>
     </div>
     </div><!-- /admin-sub-roles -->
+
+    <div class="admin-subview" id="admin-sub-import">
+    <!-- Gespeicherte Web-Anleitung (.htm + _files) im Browser zu einer PDF machen -->
+    <div class="admin-panel">
+      <h2>Web-Anleitung importieren</h2>
+      <p class="import-copy">
+        Macht aus einer im Browser gespeicherten Anleitung eine durchgehende PDF: aus der
+        HTML-Datei <code>.htm</code> und dem gleichnamigen Ordner <code>_files</code> daneben.
+        Bilder und alle Inhalte bis zum Ende der Seite werden uebernommen. Die Umwandlung
+        passiert vollstaendig lokal – es wird nichts hochgeladen, die fertige PDF wird
+        direkt heruntergeladen.
+      </p>
+      <input type="file" id="import-folder" webkitdirectory directory multiple
+             aria-describedby="import-msg" onchange="impSelectPackage()">
+      <div class="admin-actions import-actions">
+        <label for="import-folder" class="btn-choose">📁 Ordner auswaehlen</label>
+        <button type="button" class="admin-btn primary" id="import-submit"
+                onclick="impRunImport()" disabled>Anleitung als PDF erzeugen</button>
+      </div>
+      <div class="admin-msg" id="import-msg"></div>
+      <p class="import-note">
+        Waehle den Ordner, in dem genau eine HTML-Datei und der dazugehoerige Ordner liegen,
+        zum Beispiel <code>Mercedes EQE.htm</code> und <code>Mercedes EQE_files</code>.
+      </p>
+    </div>
+    </div><!-- /admin-sub-import -->
 
   </div>
 </section>
@@ -2414,7 +2467,7 @@ var adminSubview = 'features';
 
 function adminSetSubview(name) {
   adminSubview = name;
-  ['features', 'roles'].forEach(function(key) {
+  ['features', 'roles', 'import'].forEach(function(key) {
     document.getElementById('admin-subtab-' + key).classList.toggle('active', key === name);
     document.getElementById('admin-sub-' + key).classList.toggle('active', key === name);
   });
@@ -2628,6 +2681,423 @@ function adminTargetRow(type, position) {
     }
   }
   return null;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   VIEW 4 – ADMIN PORTAL (Web-Anleitung importieren)
+   ════════════════════════════════════════════════════════════════
+   Uebernimmt eine mit "Seite speichern unter" abgelegte Hersteller-
+   Anleitung (eine .htm-Datei plus der gleichnamige _files-Ordner) und
+   baut daraus eine durchgehende PDF. Alles laeuft im Browser: die
+   Dateien werden nur gelesen, nie hochgeladen – wie bei den XLSX-
+   Auswertungen. Die Seite wird dafuer in einem unsichtbaren iframe
+   aufgebaut, mit html2canvas gerastert und mit jsPDF in A4-Seiten
+   geschnitten.
+
+   Einzige Stelle der Datei mit async/await: die Kette aus Datei lesen,
+   Bilder einbetten, iframe laden und Seiten schneiden waere als
+   .then()-Kaskade nicht mehr lesbar. */
+
+/* Laenger als das schafft die Canvas-Rasterung im Browser nicht mehr. */
+var IMP_MAX_PAGE_HEIGHT_PX = 30000;
+var IMP_FRAME_TIMEOUT_MS = 25000;
+/* Erkannte Kombination aus .htm-Datei und _files-Ordner, gesetzt von impSelectPackage(). */
+var impPackage = null;
+
+function impSetStatus(text, type) {
+  var el = document.getElementById('import-msg');
+  if (!el) return;
+  el.textContent = text || '';
+  el.className = 'admin-msg' + (text ? ' visible ' + (type || '') : '');
+}
+
+/* ── Pfad-Helfer ──
+   Die Pfade kommen aus webkitRelativePath und sind darum immer relativ
+   zum gewaehlten Ordner. Vergleichen laesst sich nur normalisiert. */
+function impNormalizePath(path) {
+  var raw = String(path || '').trim().replace(/\\/g, '/').replace(/[?#].*$/, '');
+  try { raw = decodeURIComponent(raw); } catch (ignored) {}
+  var parts = [];
+  raw.split('/').forEach(function(part) {
+    if (!part || part === '.') return;
+    if (part === '..') { parts.pop(); return; }
+    parts.push(part);
+  });
+  return parts.join('/');
+}
+
+function impDirname(path) {
+  var normalized = impNormalizePath(path);
+  var position = normalized.lastIndexOf('/');
+  return position < 0 ? '' : normalized.slice(0, position);
+}
+
+function impJoinPath(base, relative) {
+  return impNormalizePath((base ? base + '/' : '') + String(relative || ''));
+}
+
+function impIsExternalReference(reference) {
+  return /^(?:[a-z][a-z0-9+.-]*:|\/\/|#)/i.test(String(reference || '').trim());
+}
+
+function impFilePath(file) {
+  return impNormalizePath(file && (file.webkitRelativePath || file.name));
+}
+
+function impPackageTitle(file) {
+  var title = String(file && file.name || '')
+    .replace(/\.html?$/i, '')
+    .replace(/[_.]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return (title || 'Unbenannte Web-Anleitung').slice(0, 160);
+}
+
+/* Sucht im gewaehlten Ordner die eine .htm-Datei, zu der es einen
+   gleichnamigen _files-Ordner gibt. Genau eine – sonst waere unklar,
+   welche Anleitung gemeint ist. */
+function impFindPackage(files) {
+  var htmlFiles = files.filter(function(file) { return /\.html?$/i.test(file.name || ''); });
+  var candidates = htmlFiles.map(function(htmlFile) {
+    var htmlPath = impFilePath(htmlFile);
+    var parentPath = impDirname(htmlPath);
+    var expectedDirectory = impJoinPath(parentPath, String(htmlFile.name || '').replace(/\.html?$/i, '') + '_files');
+    var assets = files.filter(function(file) {
+      return impFilePath(file).toLowerCase().indexOf(expectedDirectory.toLowerCase() + '/') === 0;
+    });
+    return { htmlFile: htmlFile, htmlPath: htmlPath, sourceDirectory: parentPath, resourceDirectory: expectedDirectory, assets: assets };
+  }).filter(function(candidate) { return candidate.assets.length > 0; });
+
+  if (!candidates.length) throw new Error('Keine passende Kombination aus .htm-Datei und _files-Ordner gefunden.');
+  if (candidates.length > 1) throw new Error('Mehrere Web-Anleitungen gefunden. Waehle bitte einen Ordner mit genau einer .htm-Datei und dem passenden _files-Ordner.');
+  return candidates[0];
+}
+
+/* ── Referenzen im HTML auf die lokalen Dateien umbiegen ── */
+function impBuildAssetMap(files) {
+  var exact = {};
+  var basename = {};
+  files.forEach(function(file) {
+    var fullPath = impFilePath(file);
+    if (!fullPath) return;
+    var segments = fullPath.split('/');
+    for (var index = 0; index < segments.length; index++) {
+      var suffix = segments.slice(index).join('/').toLowerCase();
+      if (!exact[suffix]) exact[suffix] = file;
+    }
+    var name = String(file.name || '').toLowerCase();
+    if (!basename[name]) basename[name] = file;
+    else if (basename[name] !== file) basename[name] = null;  // mehrdeutig -> nicht raten
+  });
+  return { exact: exact, basename: basename, urls: new Map(), dataUrls: new Map() };
+}
+
+function impResolveAsset(reference, assetMap, basePath) {
+  var raw = String(reference || '').trim();
+  if (!raw || impIsExternalReference(raw)) return null;
+  var normalized = impNormalizePath(raw).toLowerCase();
+  var candidates = [normalized, impJoinPath(basePath, raw).toLowerCase()];
+  for (var index = 0; index < candidates.length; index++) {
+    if (assetMap.exact[candidates[index]]) return assetMap.exact[candidates[index]];
+  }
+  return assetMap.basename[normalized.split('/').pop()] || null;
+}
+
+function impAssetUrl(file, assetMap) {
+  if (!file) return '';
+  if (!assetMap.urls.has(file)) assetMap.urls.set(file, URL.createObjectURL(file));
+  return assetMap.urls.get(file);
+}
+
+function impAssetDataUrl(file, assetMap) {
+  if (!file) return Promise.resolve('');
+  if (assetMap.dataUrls.has(file)) return assetMap.dataUrls.get(file);
+  var readerPromise = new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onload = function() { resolve(String(reader.result || '')); };
+    reader.onerror = function() { reject(new Error('Ein Bild der Web-Anleitung konnte nicht eingebettet werden.')); };
+    reader.readAsDataURL(file);
+  });
+  assetMap.dataUrls.set(file, readerPromise);
+  return readerPromise;
+}
+
+function impRewriteCss(css, assetMap, basePath) {
+  return String(css || '').replace(/url\(\s*(['"]?)([^'")]+)\1\s*\)/gi, function(match, quote, reference) {
+    var file = impResolveAsset(reference, assetMap, basePath);
+    return file ? 'url("' + impAssetUrl(file, assetMap) + '")' : match;
+  });
+}
+
+function impRewriteSrcset(srcset, assetMap, basePath) {
+  return String(srcset || '').split(',').map(function(candidate) {
+    var trimmed = candidate.trim();
+    if (!trimmed) return '';
+    var parts = trimmed.split(/\s+/);
+    var file = impResolveAsset(parts[0], assetMap, basePath);
+    if (file) parts[0] = impAssetUrl(file, assetMap);
+    return parts.join(' ');
+  }).join(', ');
+}
+
+/* Alles Interaktive und alles Ausfuehrbare fliegt raus – in die PDF
+   kommt reiner Inhalt, und aus einer fremden Webseite wird hier nichts
+   ausgefuehrt. */
+async function impCleanMarkup(root, assetMap, basePath, unresolved) {
+  root.querySelectorAll('script,noscript,iframe,object,embed,form,button,input,select,textarea').forEach(function(element) { element.remove(); });
+  var elements = Array.prototype.slice.call(root.querySelectorAll('*'));
+  for (var elementIndex = 0; elementIndex < elements.length; elementIndex++) {
+    var element = elements[elementIndex];
+    Array.prototype.slice.call(element.attributes || []).forEach(function(attribute) {
+      if (/^on/i.test(attribute.name)) element.removeAttribute(attribute.name);
+    });
+    var sourceAttributes = ['src', 'data-src', 'poster'];
+    for (var attributeIndex = 0; attributeIndex < sourceAttributes.length; attributeIndex++) {
+      var attributeName = sourceAttributes[attributeIndex];
+      var reference = element.getAttribute(attributeName);
+      if (!reference) continue;
+      var file = impResolveAsset(reference, assetMap, basePath);
+      if (file) {
+        // img-Elemente bekommen eingebettete Daten statt Blob-URLs. Dadurch
+        // werden grosse Bilder beim html2canvas-Export zuverlaessig gezeichnet.
+        if (attributeName === 'src' && element.tagName === 'IMG') {
+          element.setAttribute(attributeName, await impAssetDataUrl(file, assetMap));
+        } else {
+          element.setAttribute(attributeName, impAssetUrl(file, assetMap));
+        }
+      } else if (!impIsExternalReference(reference) && /^(IMG|SOURCE|VIDEO)$/i.test(element.tagName)) {
+        unresolved.push(reference);
+      }
+    }
+    if (element.hasAttribute('srcset')) element.setAttribute('srcset', impRewriteSrcset(element.getAttribute('srcset'), assetMap, basePath));
+    if (element.hasAttribute('style')) element.setAttribute('style', impRewriteCss(element.getAttribute('style'), assetMap, basePath));
+    if (element.tagName === 'A') element.removeAttribute('href');
+  }
+}
+
+function impSimplifyCarGalleries(root) {
+  Array.prototype.slice.call(root.querySelectorAll('.car-images-wrapper')).forEach(function(gallery) {
+    var pictures = Array.prototype.slice.call(gallery.querySelectorAll('.car-img-wrapper img'));
+    if (!pictures.length) return;
+    // Die Original-Galerie verwendet fuer grosse Fahrzeugbilder einen schwarzen
+    // Container. Diese Kombination uebernimmt html2canvas nicht zuverlaessig.
+    // Als neutrale Export-Galerie bleiben die exakt gleichen Bilder erhalten,
+    // aber ohne die interaktive Website-Huelle.
+    var replacement = root.ownerDocument.createElement('div');
+    replacement.className = 'import-gallery';
+    pictures.forEach(function(picture) {
+      var item = root.ownerDocument.createElement('div');
+      var image = picture.cloneNode(true);
+      image.removeAttribute('style');
+      item.appendChild(image);
+      replacement.appendChild(item);
+    });
+    gallery.replaceWith(replacement);
+  });
+}
+
+/* Baut aus der gespeicherten Seite ein eigenstaendiges HTML-Dokument:
+   Stylesheets eingebettet, Bilder als data:-URL, ohne Kopf-/Fussbereich. */
+async function impBuildDocument(packageInfo) {
+  var sourceText = await packageInfo.htmlFile.text();
+  var source = new DOMParser().parseFromString(sourceText, 'text/html');
+  var assetMap = impBuildAssetMap(packageInfo.assets);
+  var unresolved = [];
+  var styleTexts = [];
+  var stylesheetLinks = Array.prototype.slice.call(source.querySelectorAll('link[rel~="stylesheet"][href]'));
+
+  for (var linkIndex = 0; linkIndex < stylesheetLinks.length; linkIndex++) {
+    var stylesheet = impResolveAsset(stylesheetLinks[linkIndex].getAttribute('href'), assetMap, packageInfo.sourceDirectory);
+    if (!stylesheet) continue;
+    try {
+      styleTexts.push(impRewriteCss(await stylesheet.text(), assetMap, impDirname(impFilePath(stylesheet))));
+    } catch (error) {
+      console.warn('Stylesheet konnte nicht eingebettet werden.', error);
+    }
+  }
+  source.querySelectorAll('style').forEach(function(style) {
+    styleTexts.push(impRewriteCss(style.textContent, assetMap, packageInfo.sourceDirectory));
+  });
+
+  var main = source.querySelector('#maincontent') || source.querySelector('main') || source.body;
+  var content = main.cloneNode(true);
+  await impCleanMarkup(content, assetMap, packageInfo.sourceDirectory, unresolved);
+  impSimplifyCarGalleries(content);
+
+  var detectedTitle = String(source.title || '').replace(/\s+/g, ' ').trim();
+  if (!detectedTitle || detectedTitle.length > 160) {
+    var heading = content.querySelector('h1, h2');
+    detectedTitle = heading ? String(heading.textContent || '').replace(/\s+/g, ' ').trim() : '';
+  }
+
+  // Druckbild: helle Seite, Navigation/Fussbereich weg, Spaltenlayout
+  // aufgeloest, damit die Rasterung eine durchgehende Flaeche bekommt.
+  var exportStyle = [
+    'html,body{margin:0!important;padding:0!important;min-height:0!important;height:auto!important;overflow:visible!important;background:#fff!important;color:#111!important}',
+    '#webber-mobile-menu-background-wrapper,#mobile-menu-wrapper,#header-three-blocks-wrapper,#largeImgWrapper,.grecaptcha-badge,.modal-popup,.page-footer,.page-header .panel.wrapper,.page-header .panel.header{display:none!important}',
+    '.page-wrapper,.page-main,.columns,.column.main,#maincontent,main{display:block!important;width:100%!important;max-width:none!important;margin:0!important;padding:0!important;float:none!important}',
+    'a{color:inherit!important;text-decoration:none!important}',
+    'img{max-width:100%!important;height:auto!important}',
+    '.import-gallery{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;margin:0 0 24px!important;padding:0!important;background:#fff!important;overflow:visible!important}.import-gallery>div{display:block!important;min-width:0!important;background:#fff!important}.import-gallery img{display:block!important;width:100%!important;height:auto!important;max-width:100%!important;max-height:none!important;margin:0!important;object-fit:contain!important;opacity:1!important;visibility:visible!important;background:#fff!important}',
+    '@media print{*{display:initial}.page-footer,.page-header{display:none!important}}'
+  ].join('');
+
+  return {
+    title: (detectedTitle || impPackageTitle(packageInfo.htmlFile)).slice(0, 160),
+    html: '<!doctype html><html><head><meta charset="utf-8"><style>' + styleTexts.join('\n') + '</style><style>' + exportStyle + '</style></head><body class="' + zcEsc(source.body.className || '') + '">' + content.outerHTML + '</body></html>',
+    unresolved: unresolved,
+    cleanup: function() { assetMap.urls.forEach(function(url) { URL.revokeObjectURL(url); }); }
+  };
+}
+
+function impWaitForFrame(frame) {
+  return new Promise(function(resolve, reject) {
+    var timeout = window.setTimeout(function() { reject(new Error('Die Web-Anleitung konnte nicht geladen werden.')); }, IMP_FRAME_TIMEOUT_MS);
+    frame.onload = function() { window.clearTimeout(timeout); resolve(); };
+  });
+}
+
+function impWaitForImages(documentInFrame) {
+  return Promise.all(Array.prototype.slice.call(documentInFrame.images || []).map(function(image) {
+    // Grosse Fahrzeugbilder koennen bereits als "complete" gelten, obwohl sie
+    // noch nicht fertig dekodiert sind. html2canvas wuerde sie dann schwarz
+    // uebernehmen. decode() wartet auf die tatsaechlich zeichenbare Flaeche.
+    if (typeof image.decode === 'function') {
+      return image.decode().catch(function() {
+        return new Promise(function(resolve) {
+          if (image.complete) { resolve(); return; }
+          image.addEventListener('load', resolve, { once: true });
+          image.addEventListener('error', resolve, { once: true });
+        });
+      });
+    }
+    if (image.complete && image.naturalWidth) return Promise.resolve();
+    return new Promise(function(resolve) {
+      image.addEventListener('load', resolve, { once: true });
+      image.addEventListener('error', resolve, { once: true });
+    });
+  }));
+}
+
+function impFileName(title) {
+  var normalized = String(title || 'Web-Anleitung')
+    .replace(/[^a-zA-Z0-9À-ɏ._ -]/g, '')
+    .replace(/\s+/g, '-').replace(/-+/g, '-').replace(/^[-.]+|[-.]+$/g, '');
+  return (normalized || 'Web-Anleitung').slice(0, 120) + '.pdf';
+}
+
+/* Rastert das aufbereitete Dokument und schneidet es in A4-Seiten. */
+async function impCreatePdf(packageInfo, onProgress) {
+  if (!window.html2canvas || !window.jspdf || !window.jspdf.jsPDF) {
+    throw new Error('Der PDF-Konverter wurde nicht geladen. Bitte pruefe die Internetverbindung und lade die Seite neu.');
+  }
+  var prepared = await impBuildDocument(packageInfo);
+  var frame = document.createElement('iframe');
+  frame.setAttribute('aria-hidden', 'true');
+  frame.style.cssText = 'position:fixed;left:-20000px;top:0;width:1280px;height:1200px;border:0;pointer-events:none;';
+  var frameLoaded = impWaitForFrame(frame);
+  frame.srcdoc = prepared.html;
+  document.body.appendChild(frame);
+  try {
+    onProgress('Anleitung und Bilder werden vollstaendig geladen …');
+    await frameLoaded;
+    var frameDocument = frame.contentDocument;
+    await impWaitForImages(frameDocument);
+    await new Promise(function(resolve) { window.setTimeout(resolve, 700); });
+
+    var target = frameDocument.querySelector('#maincontent') || frameDocument.querySelector('main') || frameDocument.body;
+    var cssWidth = Math.max(target.scrollWidth, target.offsetWidth, 900);
+    var cssHeight = Math.max(target.scrollHeight, target.offsetHeight, 1);
+    if (cssHeight > IMP_MAX_PAGE_HEIGHT_PX) throw new Error('Die Web-Anleitung ist zu lang fuer den Browser-Import. Bitte teile sie zuerst auf.');
+
+    onProgress('Komplette Seite wird als PDF aufgebaut …');
+    var canvas = await window.html2canvas(target, {
+      backgroundColor: '#ffffff',
+      scale: 1,
+      useCORS: false,
+      allowTaint: false,
+      logging: false,
+      width: cssWidth,
+      height: cssHeight,
+      windowWidth: cssWidth,
+      windowHeight: cssHeight,
+      scrollX: 0,
+      scrollY: 0
+    });
+
+    var pageWidthMm = 210, pageHeightMm = 297, marginMm = 8;
+    var printableWidthMm = pageWidthMm - (marginMm * 2);
+    var printableHeightMm = pageHeightMm - (marginMm * 2);
+    var pageHeightPx = Math.max(1, Math.floor(canvas.width * printableHeightMm / printableWidthMm));
+    var pdf = new window.jspdf.jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+    var pages = 0;
+    for (var sourceY = 0; sourceY < canvas.height; sourceY += pageHeightPx) {
+      var sliceHeight = Math.min(pageHeightPx, canvas.height - sourceY);
+      if (pages) pdf.addPage('a4', 'portrait');
+      var slice = document.createElement('canvas');
+      slice.width = canvas.width;
+      slice.height = sliceHeight;
+      var context = slice.getContext('2d');
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, slice.width, slice.height);
+      context.drawImage(canvas, 0, sourceY, canvas.width, sliceHeight, 0, 0, slice.width, sliceHeight);
+      pdf.addImage(slice.toDataURL('image/jpeg', 0.88), 'JPEG', marginMm, marginMm, printableWidthMm, printableWidthMm * sliceHeight / slice.width, undefined, 'FAST');
+      pages += 1;
+      onProgress('PDF-Seite ' + pages + ' wird erstellt …');
+    }
+    return { blob: pdf.output('blob'), title: prepared.title, pages: pages, unresolved: prepared.unresolved };
+  } finally {
+    frame.remove();
+    prepared.cleanup();
+  }
+}
+
+/* "1 Datei" statt "1 Dateien" - die Meldungen nennen oft genau eins. */
+function impPlural(count, singular, plural) {
+  return count + ' ' + (count === 1 ? singular : plural);
+}
+
+/* Ordnerauswahl pruefen, bevor die eigentliche Umwandlung startet. */
+function impSelectPackage() {
+  var input = document.getElementById('import-folder');
+  var submit = document.getElementById('import-submit');
+  impPackage = null;
+  submit.disabled = true;
+  var files = Array.prototype.slice.call(input && input.files || []);
+  if (!files.length) { impSetStatus(''); return; }
+  try {
+    impPackage = impFindPackage(files);
+    submit.disabled = false;
+    impSetStatus('Erkannt: „' + impPackageTitle(impPackage.htmlFile) + '“ mit ' +
+                 impPlural(impPackage.assets.length, 'zugehoerigen Datei', 'zugehoerigen Dateien') +
+                 '. Bereit zur Umwandlung.', 'success');
+  } catch (error) {
+    impSetStatus(error.message || 'Der Ordner konnte nicht geprueft werden.', 'error');
+  }
+}
+
+function impRunImport() {
+  if (!authIsAdmin()) return;
+  var submit = document.getElementById('import-submit');
+  if (!impPackage) {
+    impSetStatus('Bitte waehle zuerst einen Ordner mit der HTML-Datei und dem passenden _files-Ordner.', 'error');
+    return;
+  }
+  submit.disabled = true;
+  impCreatePdf(impPackage, function(message) { impSetStatus(message); }).then(function(result) {
+    var url = URL.createObjectURL(result.blob);
+    var a = document.createElement('a'); a.href = url; a.download = impFileName(result.title); a.click();
+    URL.revokeObjectURL(url);
+    impSetStatus('„' + result.title + '“ wurde als PDF erzeugt (' +
+                 impPlural(result.pages, 'Seite', 'Seiten') + ').' +
+                 (result.unresolved.length ? ' Hinweis: ' + (result.unresolved.length === 1
+                   ? '1 Medien-Datei konnte nicht zugeordnet werden.'
+                   : result.unresolved.length + ' Medien-Dateien konnten nicht zugeordnet werden.') : ''), 'success');
+  }, function(error) {
+    impSetStatus(error.message || 'Die Web-Anleitung konnte nicht umgewandelt werden.', 'error');
+  }).then(function() {
+    submit.disabled = !impPackage;
+  });
 }
 
 /* ════════════════════════════════════════════════════════════════
