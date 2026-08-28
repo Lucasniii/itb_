@@ -766,10 +766,10 @@
     <nav class="subtabs">
       <button class="subtab active" type="button" id="admin-subtab-features"
               onclick="adminSetSubview('features')">Feature anlegen</button>
-      <button class="subtab" type="button" id="admin-subtab-roles"
-              onclick="adminSetSubview('roles')">Benutzer &amp; Rollen</button>
       <button class="subtab" type="button" id="admin-subtab-import"
               onclick="adminSetSubview('import')">Import</button>
+      <button class="subtab" type="button" id="admin-subtab-roles"
+              onclick="adminSetSubview('roles')">Benutzer &amp; Rollen</button>
     </nav>
 
     <div class="admin-subview active" id="admin-sub-features">
@@ -841,20 +841,6 @@
 
     </div><!-- /admin-sub-features -->
 
-    <div class="admin-subview" id="admin-sub-roles">
-    <!-- Rollenverwaltung -->
-    <div class="admin-panel roles-panel" id="roles-panel" style="display:none">
-      <h2>Benutzer &amp; Rollen <span id="roles-count" class="admin-badge">0</span></h2>
-      <div id="roles-list" class="role-list"></div>
-      <div class="admin-msg" id="roles-msg"></div>
-      <p class="admin-hint">
-        Nutzer:innen duerfen Eintraege einreichen und ihre eigenen offenen Eintraege
-        bearbeiten. Admins geben frei, lehnen ab und vergeben Rollen. Der letzte Admin
-        kann nicht entzogen werden.
-      </p>
-    </div>
-    </div><!-- /admin-sub-roles -->
-
     <div class="admin-subview" id="admin-sub-import">
     <!-- Gespeicherte Web-Anleitung (.htm + _files) im Browser zu einer PDF machen -->
     <div class="admin-panel">
@@ -890,6 +876,20 @@
       <div class="admin-msg" id="import-msg"></div>
     </div>
     </div><!-- /admin-sub-import -->
+
+    <div class="admin-subview" id="admin-sub-roles">
+    <!-- Rollenverwaltung -->
+    <div class="admin-panel roles-panel" id="roles-panel" style="display:none">
+      <h2>Benutzer &amp; Rollen <span id="roles-count" class="admin-badge">0</span></h2>
+      <div id="roles-list" class="role-list"></div>
+      <div class="admin-msg" id="roles-msg"></div>
+      <p class="admin-hint">
+        Nutzer:innen duerfen Eintraege einreichen und ihre eigenen offenen Eintraege
+        bearbeiten. Admins geben frei, lehnen ab und vergeben Rollen. Der letzte Admin
+        kann nicht entzogen werden.
+      </p>
+    </div>
+    </div><!-- /admin-sub-roles -->
 
   </div>
 </section>
@@ -2491,7 +2491,7 @@ var adminSubview = 'features';
 
 function adminSetSubview(name) {
   adminSubview = name;
-  ['features', 'roles', 'import'].forEach(function(key) {
+  ['features', 'import', 'roles'].forEach(function(key) {
     document.getElementById('admin-subtab-' + key).classList.toggle('active', key === name);
     document.getElementById('admin-sub-' + key).classList.toggle('active', key === name);
   });
