@@ -473,8 +473,6 @@
   .admin-btn { padding: 9px 13px; background: transparent; color: var(--text); border: 1px solid var(--border); border-radius: 2px; cursor: pointer; font: 700 0.7rem 'Roboto', Arial, sans-serif; }
   .admin-btn:hover { border-color: var(--accent); color: var(--accent); }
   .admin-btn.primary { background: var(--accent); border-color: var(--accent); color: #000; }
-  .admin-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-  .admin-btn:disabled:hover { border-color: var(--border); color: var(--text); }
   .admin-tools { display: flex; gap: 8px; flex-wrap: wrap; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 1px solid var(--border); }
   /* Ohne flex/min-width behaelt ein <input> im Flex-Container seine Standardbreite
      (ca. 20 Zeichen) – der Platzhalter wurde dadurch abgeschnitten. */
@@ -541,21 +539,31 @@
   .admin-subview.active { display: block; }
 
   /* ── WEB-ANLEITUNG IMPORTIEREN ── */
-  .import-copy { color: var(--text); font-size: 0.75rem; line-height: 1.55; margin-bottom: 16px; }
-  .import-copy code, .import-note code {
-    padding: 1px 5px; background: var(--bg); border: 1px solid var(--border); border-radius: 2px;
+  .import-info { position: relative; display: inline-block; margin-left: 8px; vertical-align: 2px; }
+  .import-info-dot {
+    width: 16px; height: 16px; padding: 0; display: inline-grid; place-items: center;
+    background: transparent; border: 1px solid var(--border); border-radius: 50%;
+    color: var(--muted); font: 700 0.6rem 'Roboto', Arial, sans-serif; cursor: help;
+  }
+  .import-info-dot:hover, .import-info-dot:focus-visible { color: var(--accent); border-color: var(--accent); }
+  /* Der lange Erklaertext haengt am i statt dauerhaft im Panel zu stehen.
+     :focus-within oeffnet ihn auch per Tab oder Fingertipp, nicht nur im Hover. */
+  .import-info-bubble {
+    display: none; position: absolute; left: -7px; top: calc(100% + 9px); z-index: 5;
+    width: min(380px, 68vw); padding: 11px 13px;
+    background: var(--bg); border: 1px solid var(--border); border-radius: 2px;
+    color: var(--text); font: 400 0.7rem/1.55 'Roboto', Arial, sans-serif;
+    letter-spacing: 0; text-transform: none; text-align: left;
+  }
+  .import-info:hover .import-info-bubble, .import-info:focus-within .import-info-bubble { display: block; }
+  .import-info-bubble code, .import-drop code {
+    padding: 1px 5px; border: 1px solid var(--border); border-radius: 2px;
     font-family: 'Roboto', Arial, sans-serif; font-size: 0.72rem; color: var(--text);
   }
-  .import-actions .btn-choose { padding: 9px 15px; font-size: 0.7rem; letter-spacing: 0.06em; }
-  .import-note {
-    display: flex; gap: 7px; align-items: flex-start; margin-top: 14px;
-    color: var(--muted); font-size: 0.67rem; line-height: 1.5;
-  }
-  .import-note::before {
-    content: 'i'; flex: 0 0 15px; width: 15px; height: 15px; display: inline-grid; place-items: center;
-    border: 1px solid var(--border); border-radius: 50%; color: var(--accent);
-    font: 700 0.6rem 'Roboto', Arial, sans-serif;
-  }
+  .import-info-bubble code { background: var(--surface); }
+  .import-drop code { background: var(--bg); }
+  .import-drop { padding: 30px 24px 24px; }
+  .import-drop .drop-sub { max-width: 520px; margin: 0 auto 20px; }
 
   .review-panel { margin-top: 20px; }
   .role-list { display: grid; gap: 6px; }
@@ -570,6 +578,12 @@
   @media (max-width: 600px) {
     .admin-layout { grid-template-columns: 1fr; gap: 14px; }
     .admin-panel { padding: 14px; }
+    /* Am Zeiger aufgehaengt liefe die Blase auf schmalen Schirmen rechts
+       heraus. Dort steht sie darum als Block unter der Ueberschrift. Der
+       Wrapper wird dafuer aufgeloest, sonst rutscht das i beim Oeffnen
+       in eine eigene Zeile. */
+    .import-info { display: contents; }
+    .import-info-bubble { position: static; width: auto; margin: 10px 0 0; }
   }
 
 </style>
@@ -844,26 +858,37 @@
     <div class="admin-subview" id="admin-sub-import">
     <!-- Gespeicherte Web-Anleitung (.htm + _files) im Browser zu einer PDF machen -->
     <div class="admin-panel">
-      <h2>Web-Anleitung importieren</h2>
-      <p class="import-copy">
-        Macht aus einer im Browser gespeicherten Anleitung eine durchgehende PDF: aus der
-        HTML-Datei <code>.htm</code> und dem gleichnamigen Ordner <code>_files</code> daneben.
-        Bilder und alle Inhalte bis zum Ende der Seite werden uebernommen. Die Umwandlung
-        passiert vollstaendig lokal – es wird nichts hochgeladen, die fertige PDF wird
-        direkt heruntergeladen.
-      </p>
+      <h2>Web-Anleitung importieren<span class="import-info">
+        <button type="button" class="import-info-dot" aria-label="Was macht dieses Werkzeug?"
+                aria-describedby="import-info-text">i</button>
+        <span class="import-info-bubble" id="import-info-text" role="tooltip">
+          Macht aus einer im Browser gespeicherten Anleitung eine durchgehende PDF: aus der
+          HTML-Datei <code>.htm</code> und dem gleichnamigen Ordner <code>_files</code> daneben.
+          Bilder und alle Inhalte bis zum Ende der Seite werden uebernommen. Die Umwandlung
+          passiert vollstaendig lokal – es wird nichts hochgeladen, die fertige PDF wird
+          direkt heruntergeladen.
+        </span>
+      </span></h2>
+
       <input type="file" id="import-folder" webkitdirectory directory multiple
              aria-describedby="import-msg" onchange="impSelectPackage()">
-      <div class="admin-actions import-actions">
-        <label for="import-folder" class="btn-choose">📁 Ordner auswaehlen</label>
-        <button type="button" class="admin-btn primary" id="import-submit"
-                onclick="impRunImport()" disabled>Anleitung als PDF erzeugen</button>
+
+      <div class="drop-zone import-drop" id="import-drop">
+        <span class="drop-icon">📂</span>
+        <div class="drop-label">Anleitungs-Ordner hier ablegen</div>
+        <div class="drop-sub">
+          Genau eine HTML-Datei und der gleichnamige Ordner daneben, zum Beispiel
+          <code>Mercedes EQE.htm</code> und <code>Mercedes EQE_files</code>. Beides zusammen
+          ablegen oder gleich den Ordner darueber.
+        </div>
+        <div class="file-row">
+          <label for="import-folder" class="btn-choose">📁 Ordner auswaehlen</label>
+          <button type="button" class="btn-run" id="import-submit"
+                  onclick="impRunImport()" disabled>▶ Als PDF erzeugen</button>
+        </div>
       </div>
+
       <div class="admin-msg" id="import-msg"></div>
-      <p class="import-note">
-        Waehle den Ordner, in dem genau eine HTML-Datei und der dazugehoerige Ordner liegen,
-        zum Beispiel <code>Mercedes EQE.htm</code> und <code>Mercedes EQE_files</code>.
-      </p>
     </div>
     </div><!-- /admin-sub-import -->
 
@@ -2701,6 +2726,8 @@ function adminTargetRow(type, position) {
 /* Laenger als das schafft die Canvas-Rasterung im Browser nicht mehr. */
 var IMP_MAX_PAGE_HEIGHT_PX = 30000;
 var IMP_FRAME_TIMEOUT_MS = 25000;
+/* Reissleine, falls jemand versehentlich einen riesigen Ordner ablegt. */
+var IMP_MAX_DROPPED_FILES = 5000;
 /* Erkannte Kombination aus .htm-Datei und _files-Ordner, gesetzt von impSelectPackage(). */
 var impPackage = null;
 
@@ -2741,7 +2768,8 @@ function impIsExternalReference(reference) {
 }
 
 function impFilePath(file) {
-  return impNormalizePath(file && (file.webkitRelativePath || file.name));
+  // impPath setzt impWalkEntry beim Ablegen, webkitRelativePath kommt vom Ordner-Waehler.
+  return impNormalizePath(file && (file.impPath || file.webkitRelativePath || file.name));
 }
 
 function impPackageTitle(file) {
@@ -3052,22 +3080,74 @@ async function impCreatePdf(packageInfo, onProgress) {
   }
 }
 
+/* ── Abgelegte Ordner einlesen ──
+   Ein Drop liefert FileSystemEntry-Objekte statt fertiger Dateilisten.
+   Der Baum wird durchlaufen und jede Datei bekommt ihren relativen Pfad
+   angehaengt, damit sie sich wie eine ueber den Ordner-Waehler gewaehlte
+   Datei verhaelt. */
+function impEntriesFromDrop(dataTransfer) {
+  var entries = [];
+  var items = dataTransfer && dataTransfer.items;
+  // Muss synchron laufen: nach dem ersten await ist die Item-Liste leer.
+  for (var index = 0; index < (items ? items.length : 0); index++) {
+    var entry = items[index].webkitGetAsEntry && items[index].webkitGetAsEntry();
+    if (entry) entries.push(entry);
+  }
+  return entries;
+}
+
+function impReadDirectory(reader) {
+  return new Promise(function(resolve, reject) { reader.readEntries(resolve, reject); });
+}
+
+async function impWalkEntry(entry, basePath, collected) {
+  if (collected.length > IMP_MAX_DROPPED_FILES) {
+    throw new Error('Der abgelegte Ordner enthaelt mehr als ' + IMP_MAX_DROPPED_FILES +
+                    ' Dateien. Bitte lege nur den Ordner der Anleitung ab.');
+  }
+  if (entry.isFile) {
+    var file = await new Promise(function(resolve, reject) { entry.file(resolve, reject); });
+    Object.defineProperty(file, 'impPath', { value: impJoinPath(basePath, entry.name) });
+    collected.push(file);
+    return;
+  }
+  if (!entry.isDirectory) return;
+  var reader = entry.createReader();
+  var directoryPath = impJoinPath(basePath, entry.name);
+  var batch;
+  // readEntries() liefert pro Aufruf hoechstens 100 Eintraege und muss so lange
+  // wiederholt werden, bis es nichts mehr zurueckgibt.
+  do {
+    batch = await impReadDirectory(reader);
+    for (var index = 0; index < batch.length; index++) await impWalkEntry(batch[index], directoryPath, collected);
+  } while (batch.length);
+}
+
+async function impFilesFromEntries(entries, fallbackFiles) {
+  if (!entries.length) return fallbackFiles;
+  var collected = [];
+  for (var index = 0; index < entries.length; index++) await impWalkEntry(entries[index], '', collected);
+  return collected;
+}
+
 /* "1 Datei" statt "1 Dateien" - die Meldungen nennen oft genau eins. */
 function impPlural(count, singular, plural) {
   return count + ' ' + (count === 1 ? singular : plural);
 }
 
-/* Ordnerauswahl pruefen, bevor die eigentliche Umwandlung startet. */
-function impSelectPackage() {
-  var input = document.getElementById('import-folder');
+/* Auswahl pruefen, bevor die eigentliche Umwandlung startet. Gemeinsamer
+   Kern fuer den Ordner-Waehler und das Ablegen per Maus. */
+function impUseFiles(files) {
   var submit = document.getElementById('import-submit');
+  var drop = document.getElementById('import-drop');
   impPackage = null;
   submit.disabled = true;
-  var files = Array.prototype.slice.call(input && input.files || []);
+  drop.classList.remove('has-file');
   if (!files.length) { impSetStatus(''); return; }
   try {
     impPackage = impFindPackage(files);
     submit.disabled = false;
+    drop.classList.add('has-file');
     impSetStatus('Erkannt: „' + impPackageTitle(impPackage.htmlFile) + '“ mit ' +
                  impPlural(impPackage.assets.length, 'zugehoerigen Datei', 'zugehoerigen Dateien') +
                  '. Bereit zur Umwandlung.', 'success');
@@ -3075,6 +3155,29 @@ function impSelectPackage() {
     impSetStatus(error.message || 'Der Ordner konnte nicht geprueft werden.', 'error');
   }
 }
+
+function impSelectPackage() {
+  var input = document.getElementById('import-folder');
+  impUseFiles(Array.prototype.slice.call(input && input.files || []));
+}
+
+var importDrop = document.getElementById('import-drop');
+
+importDrop.addEventListener('dragover',  function(e) { e.preventDefault(); importDrop.classList.add('drag-over'); });
+importDrop.addEventListener('dragleave', function()  { importDrop.classList.remove('drag-over'); });
+importDrop.addEventListener('drop', function(e) {
+  e.preventDefault();
+  importDrop.classList.remove('drag-over');
+  // Erst die Eintraege einsammeln, dann erst asynchron werden (siehe impEntriesFromDrop).
+  var entries = impEntriesFromDrop(e.dataTransfer);
+  var fallback = Array.prototype.slice.call(e.dataTransfer.files || []);
+  // Der Ordner-Waehler wird geleert, sonst haetten beide Quellen etwas zu sagen.
+  document.getElementById('import-folder').value = '';
+  impSetStatus('Ordner wird gelesen …');
+  impFilesFromEntries(entries, fallback).then(impUseFiles, function(error) {
+    impSetStatus(error.message || 'Der abgelegte Ordner konnte nicht gelesen werden.', 'error');
+  });
+});
 
 function impRunImport() {
   if (!authIsAdmin()) return;

@@ -32,7 +32,7 @@ Diese Punkte sind bewusste Architekturentscheidungen und dürfen nicht ohne ausd
 
 ## Erledigt
 
-- **Import-Unterreiter: Web-Anleitung als PDF** *(28.08.2026)* — aus der Schwester-App [itb-wissensdatenbank](https://github.com/Lucasniii/itb-wissensdatenbank) übernommen. Man wählt den Ordner, in dem eine mit „Seite speichern unter“ abgelegte Hersteller-Anleitung liegt (genau eine `.htm`-Datei plus der gleichnamige `_files`-Ordner); daraus wird eine durchgehende A4-PDF gebaut und sofort heruntergeladen.
+- **Import-Unterreiter: Web-Anleitung als PDF** *(28.08.2026)* — aus der Schwester-App [itb-wissensdatenbank](https://github.com/Lucasniii/itb-wissensdatenbank) übernommen. Man legt den Ordner ab, in dem eine mit „Seite speichern unter“ abgelegte Hersteller-Anleitung liegt (genau eine `.htm`-Datei plus der gleichnamige `_files`-Ordner), oder wählt ihn über den Knopf; daraus wird eine durchgehende A4-PDF gebaut und sofort heruntergeladen. Ablegen geht sowohl mit dem Elternordner als auch mit `.htm` und `_files`-Ordner nebeneinander. Die ausführliche Erklärung hängt am `i` neben der Überschrift statt dauerhaft im Panel zu stehen.
 
   **Unterschied zur Vorlage:** dort landet das Ergebnis als Entwurf in der Wissensdatenbank samt KI-Suchindex. Diese App hat keine Wissensdatenbank — hier wird die PDF nur erzeugt und heruntergeladen. Die Dateien verlassen den Browser nicht, es geht nichts an Supabase (Leitplanke 2).
 
