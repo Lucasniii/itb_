@@ -3725,8 +3725,8 @@ function vehRender() {
   if (!q.tokens.length) {
     var hint = '<div class="veh-hint">' +
       '<b>' + VEH_DB.length + ' Modelle</b> aus den CAN-Modul-Tabellen (Firmware 3.0.28, Stand 27.08.2026).<br>' +
-      'Hersteller und Modell eingeben, Baujahr optional &ndash; zum Beispiel ' +
-      '<b>MAN TGX 2024</b>, <b>Actros 2019</b> oder <b>Scania R</b>.';
+      'Hersteller, Modell und Baujahr eingeben &ndash; zum Beispiel ' +
+      '<b>MAN TGX 2024</b>, <b>Mercedes Actros 2019</b> oder <b>Scania R 2021</b>.';
     if (q.year) hint += '<br><br>Nur ein Baujahr genuegt nicht &ndash; bitte auch Hersteller oder Modell angeben.';
     out.innerHTML = hint + '</div>';
     return;
