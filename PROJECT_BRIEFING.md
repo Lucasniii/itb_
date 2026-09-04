@@ -6,7 +6,7 @@ Produkt-Briefing für ITB.BERICHTE — ergänzt [CLAUDE.md](CLAUDE.md) (technisc
 
 ITB.BERICHTE ist ein internes Werkzeug für die Auswertung von Telematik-/Fahrzeugdaten:
 
-- **Decoder** — übersetzt rohe Gerätekonfigurationsstrings (`ZCONFIG`, `ZVALUE`, `DATACONFIG`, `CHECKTMR`, `EVENT`) von Telematik-Trackern in lesbare Bit-für-Bit-Beschreibungen, damit man ohne Handbuch nachvollziehen kann, was ein Gerät gerade tut oder tun soll.
+- **Decoder** — übersetzt rohe Gerätekonfigurationsstrings (`ZCONFIG`, `ZVALUE`, `DATACONFIG`, `CHECKTMR`, `EVENT`) von Telematik-Trackern in lesbare Bit-für-Bit-Beschreibungen, damit man ohne Handbuch nachvollziehen kann, was ein Gerät gerade tut oder tun soll. Im selben Reiter liegt die **CAN Verfuegbarkeit**: Modell und Baujahr eingeben (z. B. „MAN TGX 2024") und ablesen, welche CAN-Werte das S10-Modul bei diesem Fahrzeug überhaupt liefern kann — die Frage, die vor jedem Einbau ansteht.
 - **KM-Pruefung** — prüft Fahrten-Exporte (XLSX) auf Kilometerstand-Fehler (Sprünge, eingefrorene Serien), um fehlerhafte oder manipulierte Fahrtenbuch-Daten zu erkennen.
 - **PTO-Erkennung** — erkennt aus Detailberichten, welche Fahrzeuge Zapfwellen-/Zusatzaggregat-Nutzung (PTO) hatten.
 - **Admin** — Wissens-Overlay, mit dem eigene Beschreibungstexte auf einzelne Decoder-Bits gelegt werden können, ohne die eingebauten Lookup-Tabellen zu verändern.
@@ -31,6 +31,12 @@ Diese Punkte sind bewusste Architekturentscheidungen und dürfen nicht ohne ausd
 > Aktuell ist kein weiterer Punkt konkret priorisiert. Weitere Prioritäten trägt der/die Projektverantwortliche hier nach — nicht spekulativ auffüllen.
 
 ## Erledigt
+
+- **CAN Verfuegbarkeit im Decoder-Reiter** *(03.09.2026)* — Freitextsuche über 919 Modelle: „MAN TGX 2024" führt zu den Generationen, deren Baujahresbereich das Jahr enthält; abweichende Generationen stehen darunter unter „Andere Generationen". Die Detailansicht zeigt gruppiert, welche der 64 CAN-Werte das Modell liefert (`JA` / `BEDINGT` bei kontaktloser Anbindung), dazu die digitalen Zustandsanzeigen und die Fußnoten der Vorlage. Standardmäßig sind alle Parameter zu sehen ("Alle Parameter"), auf Wunsch nur die tatsächlich verfügbaren ("Nur verfuegbare"); ein Suchfeld filtert zusätzlich nach Parameternamen (deutsch oder englisch).
+
+  **Datenherkunft:** die drei Albatross-Tabellen zum S10-CAN-Modul (Firmware 3.0.28, Stand 27.08.2026). Die On-Road-Tabelle ist die Obermenge — alle 125 Lkw-/Bus- und alle 98 E-Auto-Zeilen stehen dort zeichengleich drin —, deshalb liegt nur **eine** Liste in `VEH_DB`; das letzte Feld je Zeile vermerkt nur, in welcher Spezialtabelle ein Modell zusätzlich geführt wird. Die Tabellen sind Rastergrafik-artig gesetzt (Häkchen in einer Symbolschrift ohne Spaltenbezug im Text), die Zuordnung Häkchen → Spalte kommt daher aus den x-Koordinaten: 31.236 Markierungen, größte Abweichung von einer Spaltenmitte 0,20 pt bei 6,24 pt halber Spaltenbreite, und die Summe je Symbolart stimmt mit den Zeilen überein. `VEH_DB` ist damit **Fachdatum wie `ZC_DEFS`** (Leitplanke 6) — Änderungen nur gegen eine neue Herstellertabelle, nicht per Hand.
+
+  Umgesetzt ohne neue Abhängigkeit, ohne Server und ohne zusätzlichen Reiter: die Suche ist ein zweiter Bereich im Decoder-Reiter, umgeschaltet über eine `.zc-fbtn`-Zeile.
 
 - **Import-Unterreiter: Web-Anleitung als PDF** *(28.08.2026)* — aus der Schwester-App [itb-wissensdatenbank](https://github.com/Lucasniii/itb-wissensdatenbank) übernommen. Man legt den Ordner ab, in dem eine mit „Seite speichern unter“ abgelegte Hersteller-Anleitung liegt (genau eine `.htm`-Datei plus der gleichnamige `_files`-Ordner), oder wählt ihn über den Knopf; daraus wird eine durchgehende A4-PDF gebaut und sofort heruntergeladen. Ablegen geht sowohl mit dem Elternordner als auch mit `.htm` und `_files`-Ordner nebeneinander. Die ausführliche Erklärung hängt am `i` neben der Überschrift statt dauerhaft im Panel zu stehen.
 
