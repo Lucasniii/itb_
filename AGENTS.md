@@ -14,7 +14,7 @@ Produktzweck, nicht verhandelbare Leitplanken, Roadmap und offene Produktfragen.
 
 ## Das Wichtigste in Kürze
 
-Die gesamte App ist **eine Datei**: [index.html](index.html) (~4785 Zeilen, HTML + CSS +
+Die gesamte App ist **eine Datei**: [index.html](index.html) (~5554 Zeilen, HTML + CSS +
 JS inline; rund ein Fuenftel davon ist die Fahrzeugtabelle `VEH_DB`). Kein Build-System,
 kein Paketmanager, kein Linter, keine Tests, keine CI.
 

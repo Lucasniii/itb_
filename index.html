@@ -88,7 +88,7 @@
   /* ── TABS ── */
   .tabs {
     width: 100%; max-width: 960px;
-    display: flex; gap: 4px; margin-bottom: 32px;
+    display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 32px;
     border-bottom: 1px solid var(--border);
   }
   .tab {
@@ -462,6 +462,7 @@
   .zc-dcell.off .dn { color: var(--text); }
 
   @media (max-width: 600px) {
+    .tab { padding: 10px 12px; font-size: 0.75rem; }
     .summary-grid { grid-template-columns: repeat(2,1fr); }
     .zc-grid { grid-template-columns: 1fr; }
     .zc-grid.zc-grid-cols { column-count: 1; }
@@ -593,6 +594,84 @@
   .role-mail { font-size: 0.66rem; color: var(--muted); }
   .role-actions { margin-left: auto; display: flex; gap: 5px; align-items: center; }
 
+  /* ── SERIENNUMMERN-FINDER ── */
+  .sn-quick-row { margin-bottom: 14px; }
+  .sn-quick-row .admin-input { width: 100%; }
+  /* Diese Ablageflaeche hat keinen Erklaertext; den Abstand zum Knopf,
+     den .drop-sub in den anderen Reitern liefert, gibt hier das Label. */
+  #sn-drop .drop-label { margin-bottom: 20px; }
+  #sn-filename { margin-bottom: 14px; font-size: 0.78rem; color: var(--accent); }
+  .sn-filter {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 10px 12px; margin-bottom: 8px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 2px;
+  }
+  .sn-filter .admin-select { flex: 0 1 200px; min-width: 0; }
+  .sn-filter .sn-op { flex: 0 1 150px; }
+  /* Der Wertebereich schluckt den Rest der Zeile; ohne min-width:0 behaelt
+     ein input in einer Flex-Zeile seine Standardbreite und schneidet ab. */
+  .sn-vals { flex: 1 1 260px; min-width: 0; display: flex; align-items: center; gap: 6px; }
+  .sn-chips {
+    flex: 1 1 auto; min-width: 0;
+    display: flex; align-items: center; gap: 5px; flex-wrap: wrap;
+    padding: 5px 7px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 2px;
+  }
+  .sn-chips:focus-within { border-color: var(--accent); }
+  .sn-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 6px; border-radius: 2px;
+    background: rgba(232,255,71,0.10); border: 1px solid rgba(232,255,71,0.30);
+    color: var(--accent); font-size: 0.68rem; max-width: 100%;
+  }
+  .sn-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sn-chip button {
+    padding: 0; background: none; border: 0; cursor: pointer;
+    color: var(--accent); font: 700 0.68rem 'Roboto', Arial, sans-serif;
+  }
+  .sn-chip-input {
+    flex: 1 1 90px; min-width: 90px; padding: 2px;
+    background: transparent; border: 0; outline: none;
+    color: var(--text); font: 400 0.72rem 'Roboto', Arial, sans-serif;
+  }
+  .sn-range { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 6px; }
+  .sn-range .admin-input { flex: 1 1 0; min-width: 0; }
+  .sn-range span { color: var(--muted); font-size: 0.72rem; }
+  .sn-del {
+    padding: 4px 8px; background: transparent; border: 1px solid var(--border);
+    border-radius: 2px; cursor: pointer;
+    color: var(--muted); font: 700 0.7rem 'Roboto', Arial, sans-serif;
+  }
+  .sn-del:hover { color: var(--red); border-color: var(--red); }
+
+  .sn-out-panel {
+    margin: 20px 0; padding: 16px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 3px;
+  }
+  .sn-out-head { display: flex; align-items: flex-end; gap: 14px; flex-wrap: wrap; margin-bottom: 12px; }
+  .sn-out-head .admin-field { flex: 0 1 240px; min-width: 0; }
+  .sn-out-head .sn-sep-field { flex: 0 0 90px; }
+  .sn-out-panel .zc-textarea { width: 100%; margin-bottom: 12px; }
+
+  .sn-table-wrap { max-height: 460px; overflow: auto; border: 1px solid var(--border); border-radius: 2px; }
+  .sn-table { width: 100%; border-collapse: collapse; font-size: 0.68rem; }
+  .sn-table th {
+    position: sticky; top: 0; z-index: 1;
+    padding: 8px 10px; text-align: left; white-space: nowrap;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    color: var(--muted); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  }
+  .sn-table th.is-out { color: var(--accent); }
+  .sn-table td {
+    padding: 6px 10px; max-width: 260px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    border-bottom: 1px solid var(--border); color: var(--text);
+  }
+  .sn-table td.is-out { color: var(--accent); font-weight: 700; }
+  .sn-table tr:last-child td { border-bottom: 0; }
+  .sn-table .sn-empty { padding: 26px 10px; text-align: center; color: var(--muted); }
+  .sn-note { margin-top: 8px; color: var(--muted); font-size: 0.66rem; }
+
   @media (max-width: 600px) {
     .admin-layout { grid-template-columns: 1fr; gap: 14px; }
     .admin-panel { padding: 14px; }
@@ -623,6 +702,8 @@
 
 <nav class="tabs">
   <button class="tab active" data-view="zconfig">Decoder</button>
+  <button class="tab" data-view="serial">Seriennummern</button>
+  <button class="tab" data-view="veh">CAN Verfuegbarkeit</button>
   <button class="tab" data-view="pruef">KM-Pruefung</button>
   <button class="tab" data-view="merge">PTO-Erkennung</button>
   <button class="tab" data-view="admin" id="tab-admin" style="display:none">Admin<span class="tab-badge" id="tab-review-count"></span></button>
@@ -686,50 +767,45 @@
 <section class="view active" id="view-zconfig">
   <div class="zc-wrap">
 
-    <div class="zc-filter-row" id="zc-mode-row">
-      <button class="zc-fbtn active" id="zc-mode-dec" onclick="vehSetPane('dec')">Decoder</button>
-      <button class="zc-fbtn" id="zc-mode-veh" onclick="vehSetPane('veh')">CAN Verfuegbarkeit</button>
+    <div class="zc-input-row">
+      <textarea class="zc-textarea" id="zc-input" rows="3"
+        placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG, $QR:CHECKTMR or EVENT string here…"></textarea>
+      <button class="btn-run" style="flex-shrink:0" onclick="zcParse()">▶ Decode</button>
     </div>
 
-    <div id="zc-pane-dec">
-
-      <div class="zc-input-row">
-        <textarea class="zc-textarea" id="zc-input" rows="3"
-          placeholder="Paste $QR:ZCONFIG, $QR:ZCONFIG2, $QR:ZCONFIG3, $QR:ZCONFIG4, $QR:ZVALUE, $QR:ZVALUE2, $QR:DATACONFIG, $QR:CHECKTMR or EVENT string here…"></textarea>
-        <button class="btn-run" style="flex-shrink:0" onclick="zcParse()">▶ Decode</button>
-      </div>
-
-
-
-      <div id="zc-dcview-row" class="zc-filter-row" style="display:none">
-        <button class="zc-fbtn active" id="zc-dc-full" onclick="zcSetDcView('full')">Gesamt</button>
-        <button class="zc-fbtn" id="zc-dc-grid" onclick="zcSetDcView('grid')">Data 1–99</button>
-      </div>
-
-      <div id="zc-filter-row" class="zc-filter-row" style="display:none">
-        <button class="zc-fbtn active" id="zc-f-all" onclick="zcFilter('all')">All</button>
-        <button class="zc-fbtn" id="zc-f-on"  onclick="zcFilter('on')"><span id="zc-f-on-label">Active only</span></button>
-        <button class="zc-fbtn" id="zc-f-off" onclick="zcFilter('off')"><span id="zc-f-off-label">Inactive only</span></button>
-      </div>
-
-      <div id="zc-search-row" class="zc-search-row" style="display:none">
-        <input type="text" id="zc-search" class="zc-search" placeholder="Suchen (Name, Beschreibung oder Nummer)…" oninput="zcRender()">
-        <button class="zc-fbtn" id="zc-search-clear" onclick="zcClearSearch()" title="Suche loeschen">✕</button>
-      </div>
-
-      <div id="zc-out"></div>
+    <div id="zc-dcview-row" class="zc-filter-row" style="display:none">
+      <button class="zc-fbtn active" id="zc-dc-full" onclick="zcSetDcView('full')">Gesamt</button>
+      <button class="zc-fbtn" id="zc-dc-grid" onclick="zcSetDcView('grid')">Data 1–99</button>
     </div>
 
-    <div id="zc-pane-veh" style="display:none">
-
-      <div class="zc-search-row">
-        <input type="text" id="veh-q" class="zc-search"
-          placeholder="Hersteller, Modell und Baujahr, z. B. MAN TGX 2024…" oninput="vehSearch()">
-        <button class="zc-fbtn" id="veh-search-clear" onclick="vehClear()" title="Suche loeschen">✕</button>
-      </div>
-
-      <div id="veh-out"></div>
+    <div id="zc-filter-row" class="zc-filter-row" style="display:none">
+      <button class="zc-fbtn active" id="zc-f-all" onclick="zcFilter('all')">All</button>
+      <button class="zc-fbtn" id="zc-f-on"  onclick="zcFilter('on')"><span id="zc-f-on-label">Active only</span></button>
+      <button class="zc-fbtn" id="zc-f-off" onclick="zcFilter('off')"><span id="zc-f-off-label">Inactive only</span></button>
     </div>
+
+    <div id="zc-search-row" class="zc-search-row" style="display:none">
+      <input type="text" id="zc-search" class="zc-search" placeholder="Suchen (Name, Beschreibung oder Nummer)…" oninput="zcRender()">
+      <button class="zc-fbtn" id="zc-search-clear" onclick="zcClearSearch()" title="Suche loeschen">✕</button>
+    </div>
+
+    <div id="zc-out"></div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     VIEW 2b – CAN VERFUEGBARKEIT
+     ════════════════════════════════════════════════════════════════ -->
+<section class="view" id="view-veh">
+  <div class="zc-wrap">
+
+    <div class="zc-search-row">
+      <input type="text" id="veh-q" class="zc-search"
+        placeholder="Hersteller, Modell und Baujahr, z. B. MAN TGX 2024…" oninput="vehSearch()">
+      <button class="zc-fbtn" id="veh-search-clear" onclick="vehClear()" title="Suche loeschen">✕</button>
+    </div>
+
+    <div id="veh-out"></div>
   </div>
 </section>
 
@@ -928,6 +1004,70 @@
     </div>
     </div><!-- /admin-sub-roles -->
 
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════
+     VIEW 5 – SERIENNUMMERN-FINDER
+     ════════════════════════════════════════════════════════════════ -->
+<section class="view" id="view-serial">
+
+  <input type="file" id="sn-file-input" accept=".csv,text/csv,text/plain">
+
+  <div class="drop-zone" id="sn-drop">
+    <span class="drop-icon">🔎</span>
+    <div class="drop-label">CSV-Datei hier ablegen</div>
+    <div id="sn-filename"></div>
+    <div class="file-row">
+      <label for="sn-file-input" class="btn-choose">📁 Datei auswaehlen</label>
+    </div>
+  </div>
+
+  <div class="status-bar" id="sn-status"></div>
+
+  <div class="results" id="sn-results">
+
+    <div class="summary-grid">
+      <div class="stat-box"><div class="stat-label">Zeilen in der Datei</div><div class="stat-value yellow" id="sn-stat-rows">—</div></div>
+      <div class="stat-box"><div class="stat-label">Treffer</div><div class="stat-value green" id="sn-stat-hits">—</div></div>
+      <div class="stat-box"><div class="stat-label">Seriennummern</div><div class="stat-value yellow" id="sn-stat-serials">—</div></div>
+      <div class="stat-box"><div class="stat-label">Aktive Bedingungen</div><div class="stat-value orange" id="sn-stat-filters">—</div></div>
+    </div>
+
+    <div class="sn-quick-row">
+      <input class="admin-input" id="sn-quick" type="text" autocomplete="off"
+        placeholder="Schnellsuche ueber alle Spalten…" oninput="snRefresh()">
+    </div>
+
+    <div id="sn-filters"></div>
+
+    <div class="zc-filter-row">
+      <button class="zc-fbtn" type="button" onclick="snAddFilter()">+ Bedingung</button>
+      <button class="zc-fbtn" type="button" onclick="snResetFilters()">Alle zuruecksetzen</button>
+    </div>
+
+    <div class="sn-out-panel">
+      <div class="sn-out-head">
+        <div class="admin-field">
+          <label for="sn-col">Ausgabespalte</label>
+          <select class="admin-select" id="sn-col" onchange="snRefresh()"></select>
+        </div>
+        <div class="admin-field sn-sep-field">
+          <label for="sn-sep">Trennzeichen</label>
+          <input class="admin-input" id="sn-sep" type="text" value="|" maxlength="3" oninput="snRefresh()">
+        </div>
+      </div>
+      <textarea class="zc-textarea" id="sn-out" rows="4" readonly
+        placeholder="Keine Treffer – Bedingungen anpassen." onclick="this.select()"></textarea>
+      <div class="file-row" style="justify-content:flex-start">
+        <button class="btn-dl" type="button" onclick="snCopy()">⧉ Liste kopieren</button>
+        <button class="btn-dl" type="button" onclick="snDownload()">⬇ Als TXT speichern</button>
+      </div>
+      <div class="sn-note" id="sn-out-note"></div>
+    </div>
+
+    <div class="sn-table-wrap"><table class="sn-table" id="sn-table"></table></div>
+    <div class="sn-note" id="sn-table-note"></div>
   </div>
 </section>
 
@@ -1190,6 +1330,12 @@ function showView(name) {
   document.querySelectorAll('.view').forEach(function(v) { v.classList.toggle('active', v.id === 'view-' + name); });
   // Beim Oeffnen neu laden – es koennen zwischenzeitlich Eintraege eingereicht worden sein.
   if (name === 'admin' && authUser) { adminLoadFeatures(); profilesLoad(); }
+  // Die Fahrzeugsuche lebt vom Suchfeld: Cursor hinein, Liste aufbauen.
+  if (name === 'veh') {
+    var q = document.getElementById('veh-q');
+    if (q) q.focus();
+    vehRender();
+  }
 }
 
 document.querySelectorAll('.tab').forEach(function(tab) {
@@ -3668,18 +3814,6 @@ function vehParse(raw) {
   return { tokens: tokens, year: year, yearTok: yearTok };
 }
 
-function vehSetPane(p) {
-  document.getElementById('zc-pane-dec').style.display = (p === 'dec') ? '' : 'none';
-  document.getElementById('zc-pane-veh').style.display = (p === 'veh') ? '' : 'none';
-  document.getElementById('zc-mode-dec').classList.toggle('active', p === 'dec');
-  document.getElementById('zc-mode-veh').classList.toggle('active', p === 'veh');
-  if (p === 'veh') {
-    var el = document.getElementById('veh-q');
-    if (el) el.focus();
-    vehRender();
-  }
-}
-
 function vehSearch()  { vehSelected = -1; vehRender(); }
 function vehBack()    { vehSelected = -1; vehRender(); }
 function vehShow(i)   { vehSelected = i; vehFilter = 'all'; vehRender(); window.scrollTo(0, 0); }
@@ -4778,6 +4912,641 @@ function readFileBuf(f) {
     fr.onerror = function() { rej(new Error('Konnte ' + f.name + ' nicht lesen')); };
     fr.readAsArrayBuffer(f);
   });
+}
+
+/* ════════════════════════════════════════════════════════════════
+   VIEW 5 – SERIENNUMMERN-FINDER
+   Filtert einen CSV-Geraeteexport ueber beliebig viele Bedingungen
+   und gibt die Seriennummern der uebrig gebliebenen Zeilen als
+   kopierbare Liste aus (Standardtrenner "|").
+   Wie bei den XLSX-Reitern verlaesst die Datei den Browser nie.
+   ════════════════════════════════════════════════════════════════ */
+var SN_PREVIEW_ROWS = 200;   // mehr Zeilen zeigt die Vorschautabelle nicht
+var SN_SUGGEST_MAX  = 200;   // Groesse der Vorschlagsliste je Spalte
+var SN_ALL_COLS     = -1;    // Spaltenwert fuer "Alle Spalten"
+
+var SN_OPS = [
+  ['contains',  'enthaelt'],
+  ['ncontains', 'enthaelt nicht'],
+  ['range',     'Zahlenbereich']
+];
+var SN_TEXT_OPS = ['contains', 'ncontains'];
+
+var snCols    = [];   // Spaltenueberschriften
+var snRows    = [];   // Datenzeilen, jeweils auf snCols.length aufgefuellt
+var snFilters = [];   // { col, op, vals[], min, max, draft }
+var snHits    = [];   // Zeilen, die alle Bedingungen erfuellen
+var snList    = [];   // die ausgegebenen Seriennummern
+
+var snInput = document.getElementById('sn-file-input');
+var snDrop  = document.getElementById('sn-drop');
+
+snInput.addEventListener('change', function(e) {
+  if (e.target.files[0]) snLoadFile(e.target.files[0]);
+  snInput.value = '';
+});
+snDrop.addEventListener('dragover',  function(e) { e.preventDefault(); snDrop.classList.add('drag-over'); });
+snDrop.addEventListener('dragleave', function()  { snDrop.classList.remove('drag-over'); });
+snDrop.addEventListener('drop', function(e) {
+  e.preventDefault(); snDrop.classList.remove('drag-over');
+  if (e.dataTransfer.files[0]) snLoadFile(e.dataTransfer.files[0]);
+});
+
+/* ── CSV lesen ───────────────────────────────────────────────── */
+
+/* UTF-8 zuerst; kommt dabei ein Ersatzzeichen heraus, war es ein
+   Windows-Export (Excel schreibt haeufig windows-1252). */
+function snDecode(buf) {
+  var utf8 = new TextDecoder('utf-8').decode(buf);
+  if (utf8.indexOf('�') === -1) return utf8;
+  try { return new TextDecoder('windows-1252').decode(buf); }
+  catch (e) { return utf8; }
+}
+
+/* Erste Zeile – Umbrueche innerhalb von Anfuehrungszeichen zaehlen nicht. */
+function snHeadLine(text) {
+  var inQ = false;
+  for (var i = 0; i < text.length; i++) {
+    var c = text.charAt(i);
+    if (c === '"') {
+      if (inQ && text.charAt(i + 1) === '"') { i++; continue; }
+      inQ = !inQ;
+    } else if (!inQ && (c === '\n' || c === '\r')) {
+      return text.slice(0, i);
+    }
+  }
+  return text;
+}
+
+function snCountOutside(line, ch) {
+  var inQ = false, n = 0;
+  for (var i = 0; i < line.length; i++) {
+    var c = line.charAt(i);
+    if (c === '"') {
+      if (inQ && line.charAt(i + 1) === '"') { i++; continue; }
+      inQ = !inQ;
+    } else if (!inQ && c === ch) { n++; }
+  }
+  return n;
+}
+
+/* Trennzeichen raten: das in der Kopfzeile haeufigste gewinnt. */
+function snDetectDelim(text) {
+  var head = snHeadLine(text), best = ';', most = 0;
+  [';', ',', '\t', '|'].forEach(function(cand) {
+    var n = snCountOutside(head, cand);
+    if (n > most) { most = n; best = cand; }
+  });
+  return best;
+}
+
+/* Deckt ab, was die Exporte tatsaechlich liefern: BOM, gequotete Felder
+   mit verdoppelten Quotes (eingebettetes JSON), Trennzeichen und
+   Umbrueche im Feld, CRLF wie LF. */
+function snParseCsv(text) {
+  if (text.charAt(0) === '﻿') text = text.slice(1);
+  var delim = snDetectDelim(text);
+  var recs = [], row = [], field = '', inQ = false;
+
+  function endRow() { row.push(field); recs.push(row); row = []; field = ''; }
+
+  for (var i = 0; i < text.length; i++) {
+    var c = text.charAt(i);
+    if (inQ) {
+      if (c === '"') {
+        if (text.charAt(i + 1) === '"') { field += '"'; i++; }
+        else { inQ = false; }
+      } else if (c === '\r') {
+        if (text.charAt(i + 1) === '\n') i++;
+        field += '\n';
+      } else { field += c; }
+      continue;
+    }
+    if (c === '"')             { inQ = true; }
+    else if (c === delim)      { row.push(field); field = ''; }
+    else if (c === '\n')       { endRow(); }
+    else if (c === '\r')       { if (text.charAt(i + 1) === '\n') i++; endRow(); }
+    else                       { field += c; }
+  }
+  if (field !== '' || row.length > 0) endRow();
+
+  var filled = recs.filter(function(r) {
+    return r.some(function(v) { return v.trim() !== ''; });
+  });
+  if (filled.length === 0) return { cols: [], rows: [], delim: delim };
+
+  var taken = {};
+  var cols = filled[0].map(function(name, idx) {
+    var clean = name.trim() || ('Spalte ' + (idx + 1));
+    if (taken[clean]) {
+      var n = 2;
+      while (taken[clean + ' (' + n + ')']) n++;
+      clean = clean + ' (' + n + ')';
+    }
+    taken[clean] = true;
+    return clean;
+  });
+
+  var rows = filled.slice(1).map(function(r) {
+    while (r.length < cols.length) r.push('');
+    return r.length > cols.length ? r.slice(0, cols.length) : r;
+  });
+
+  return { cols: cols, rows: rows, delim: delim };
+}
+
+/* ── Firmware-Spalte aufbereiten ─────────────────────────────── */
+
+/* Die Firmware-Spalte traegt drei Staende in einem Feld:
+   "Jul 10 2025 18:05:34 | C:2.3.12 b [0] | T:2.1.7.9"
+   -> Geraete-Firmware (die wird ueber ihr Build-Datum benannt),
+      CAN-Firmware hinter "C:", Tachoversion hinter "T:".
+   Beim Einlesen wird das auseinandergezogen: die Originalspalte
+   behaelt nur noch das Build-Datum, CAN und Tacho bekommen je eine
+   eigene Spalte direkt dahinter. So filtert jeder Stand fuer sich,
+   und die Vorschlagsliste der Firmware-Spalte zeigt die Datumswerte
+   statt hunderter Kombinationen aus allen dreien. Geraete ohne diese
+   Form (Level, atrack "Rev.1.10 Build.260600") behalten ihren Text
+   und lassen CAN und Tacho leer. */
+var SN_FW_COLS = ['Firmware - CAN', 'Firmware - Tacho'];
+
+/* Uhrzeit und alles ab dem ersten | fallen weg: die Uhrzeit trennt
+   keine Staende ("Jul 10 2025 15:15:28" und "Jul 10 2025 11:50:03"
+   sind dieselbe Firmware), der Rest steht in den eigenen Spalten.
+   Uebrig bleibt genau ein Build-Datum "Mon T JJJJ" – was diese Form
+   nicht hat (Level, atrack "Rev.1.10 Build.260600"), ist keine
+   Firmware in diesem Sinn und bleibt leer. */
+var SN_MONTHS = { Jan:1, Feb:2, Mar:3, Apr:4, May:5, Jun:6,
+                  Jul:7, Aug:8, Sep:9, Oct:10, Nov:11, Dec:12 };
+var SN_FW_DATE = /^([A-Z][a-z]{2})\s+(\d{1,2})\s+(\d{4})(?![\d:])/;
+
+function snFirmwareDate(value) {
+  var head = String(value == null ? '' : value).split('|')[0].trim();
+  var treffer = SN_FW_DATE.exec(head);
+  if (!treffer || !SN_MONTHS[treffer[1]]) return '';
+  // Einstellige Tage stehen mit zwei Leerzeichen da ("Dec  1 2023");
+  // vereinheitlicht steht in Spalte und Vorschlagsliste dasselbe.
+  return treffer[1] + ' ' + treffer[2] + ' ' + treffer[3];
+}
+
+/* Sortierschluessel JJJJMMTT, 0 wenn es kein Build-Datum ist. */
+function snDateKey(value) {
+  var treffer = SN_FW_DATE.exec(String(value == null ? '' : value).trim());
+  if (!treffer || !SN_MONTHS[treffer[1]]) return 0;
+  return Number(treffer[3]) * 10000 + SN_MONTHS[treffer[1]] * 100 + Number(treffer[2]);
+}
+
+/* Versionsnummern wie "2.3.12 b [0]" (CAN) oder "3.0.27.0" (Tacho):
+   stellenweise numerisch vergleichen, damit 2.3.9 unter 2.3.12 landet
+   und nicht darueber, wie es ein Textvergleich ergaebe. Der Buchstaben-
+   zusatz entscheidet danach ("3.0.24 g" vor "3.0.24 h"). */
+var SN_VERSION = /^(\d+(?:\.\d+)+)\s*([a-z]?)/;
+// Deutsche Datumsangaben ("27.06.2022 10:23") sehen wie Versionen aus,
+// sind aber keine – die bleiben nach Haeufigkeit sortiert.
+var SN_DMY = /^\d{1,2}\.\d{1,2}\.\d{4}\b/;
+
+function snVersionParts(value) {
+  var text = String(value == null ? '' : value).trim();
+  if (SN_DMY.test(text)) return null;
+  var treffer = SN_VERSION.exec(text);
+  if (!treffer) return null;
+  return { zahlen: treffer[1].split('.').map(Number), suffix: treffer[2] || '' };
+}
+
+/* Absteigend: hoechste Version zuerst. */
+function snVersionCmp(a, b) {
+  var pa = snVersionParts(a), pb = snVersionParts(b);
+  var tiefe = Math.max(pa.zahlen.length, pb.zahlen.length);
+  for (var i = 0; i < tiefe; i++) {
+    var za = pa.zahlen[i] || 0, zb = pb.zahlen[i] || 0;
+    if (za !== zb) return zb - za;
+  }
+  if (pa.suffix !== pb.suffix) return pa.suffix < pb.suffix ? 1 : -1;
+  return String(a).localeCompare(String(b), 'de');
+}
+
+function snSplitFirmware(value) {
+  var parts = String(value == null ? '' : value).split('|');
+  var can = '', tacho = '';
+  parts.slice(1).forEach(function(p) {
+    var t = p.trim();
+    if (t.indexOf('C:') === 0)      can   = t.slice(2).trim();
+    else if (t.indexOf('T:') === 0) tacho = t.slice(2).trim();
+  });
+  return [can, tacho];
+}
+
+/* Kuerzt die Firmware-Spalte auf das Build-Datum und haengt CAN und
+   Tacho als eigene Spalten an. Gibt zurueck, wie viele dazukamen. */
+function snPrepareFirmware(t) {
+  var fi = -1;
+  for (var i = 0; i < t.cols.length; i++) {
+    if (snNorm(t.cols[i]) === 'firmware') { fi = i; break; }
+  }
+  if (fi === -1) return;
+
+  // Traegt die Datei die abgeleiteten Namen schon selbst, bleibt das
+  // Gesamtfeld stehen – sonst waeren CAN und Tacho nirgends mehr zu
+  // finden, weil sie beim Kuerzen wegfallen.
+  if (SN_FW_COLS.some(function(n) { return t.cols.indexOf(n) !== -1; })) return;
+
+  t.rows.forEach(function(row) {
+    // Erst zerlegen, dann kuerzen – danach sind die | weg.
+    var abgeleitet = snSplitFirmware(row[fi]);
+    row[fi] = snFirmwareDate(row[fi]);
+    row.splice.apply(row, [fi + 1, 0].concat(abgeleitet));
+  });
+
+  t.cols.splice.apply(t.cols, [fi + 1, 0].concat(SN_FW_COLS));
+}
+
+function snLoadFile(file) {
+  setStatus('sn-status', 'Datei wird gelesen…', '');
+  readFileBuf(file).then(function(buf) {
+    var t = snParseCsv(snDecode(buf));
+    if (t.cols.length === 0) {
+      setStatus('sn-status', 'Die Datei enthaelt keine lesbaren Spalten.', 'error');
+      return;
+    }
+    snPrepareFirmware(t);
+    snCols = t.cols;
+    snRows = t.rows;
+
+    document.getElementById('sn-filename').textContent = file.name;
+    snDrop.classList.add('has-file');
+    document.getElementById('sn-results').classList.add('visible');
+    document.getElementById('sn-quick').value = '';
+
+    // Ausgabespalte vorbelegen und Spaltenauswahl fuellen
+    var outSel = document.getElementById('sn-col');
+    outSel.innerHTML = snCols.map(function(name, i) {
+      return '<option value="' + i + '">' + zcEsc(name) + '</option>';
+    }).join('');
+    outSel.value = String(snGuessSerialCol());
+
+    // Startbedingungen: der uebliche Einstieg ist "Nummernkreis + Firmware".
+    // snFindCol trifft die Originalspalte zuerst, die abgeleiteten stehen
+    // dahinter – gesucht wird also im Gesamtfeld, z. B. nach "Jul 31 2026".
+    var fw = snFindCol('firmware');
+    snFilters = [snNewFilter(snGuessSerialCol(), 'range')];
+    if (fw !== -1) snFilters.push(snNewFilter(fw, 'contains'));
+
+    snRenderFilters();
+    snRefresh();
+    // Keine Erfolgsmeldung: die Zahlen stehen in den Kennzahlen-Kacheln,
+    // der Dateiname in der Ablageflaeche. Die Leiste bleibt fuer Fehler
+    // und die Kopier-Rueckmeldung reserviert.
+    setStatus('sn-status', '', '');
+  }).catch(function(err) {
+    setStatus('sn-status', err.message || 'Datei konnte nicht gelesen werden.', 'error');
+  });
+}
+
+function snFindCol(needle) {
+  for (var i = 0; i < snCols.length; i++) {
+    if (snCols[i].toLowerCase().indexOf(needle) !== -1) return i;
+  }
+  return -1;
+}
+
+/* Die Spalte, die nach Seriennummer aussieht – sonst die erste. */
+function snGuessSerialCol() {
+  var hints = ['device external id', 'seriennummer', 'serialnumber', 'serial number', 'serial', 'imei'];
+  for (var h = 0; h < hints.length; h++) {
+    var found = snFindCol(hints[h]);
+    if (found !== -1) return found;
+  }
+  return 0;
+}
+
+/* ── Vergleichen ─────────────────────────────────────────────── */
+
+/* Gross-/Kleinschreibung egal, Mehrfach-Leerzeichen zusammengefasst –
+   damit "Jul 5 2021" auch die Firmware-Schreibweise "Jul  5 2021"
+   mit zwei Leerzeichen findet. */
+function snNorm(v) {
+  return String(v == null ? '' : v).replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+/* Zahl aus einer Zelle; NaN, wenn die Zelle keine reine Zahl ist. */
+function snNum(v) {
+  var s = String(v == null ? '' : v).replace(/\s/g, '');
+  if (s === '') return NaN;
+  if (/^[+-]?\d+(\.\d+)?$/.test(s)) return Number(s);
+  if (/^[+-]?\d+(,\d+)?$/.test(s)) return Number(s.replace(',', '.'));
+  return NaN;
+}
+
+function snNewFilter(col, op) {
+  return { col: col, op: op || 'contains', vals: [], min: '', max: '', draft: '' };
+}
+
+/* Eine Bedingung ohne Eingabe filtert nichts weg – sonst waere eine
+   frisch angelegte Zeile sofort ein Ausschluss. */
+function snActive(f) {
+  if (f.op === 'range') return !isNaN(snNum(f.min)) || !isNaN(snNum(f.max));
+  return f.vals.length > 0;
+}
+
+function snCells(row, f) {
+  return f.col === SN_ALL_COLS ? row : [row[f.col] == null ? '' : row[f.col]];
+}
+
+function snTextHit(cell, vals) {
+  var hay = snNorm(cell);
+  return vals.some(function(raw) {
+    var needle = snNorm(raw);
+    return needle !== '' && hay.indexOf(needle) !== -1;
+  });
+}
+
+function snMatch(row, f) {
+  if (!snActive(f)) return true;
+  var cells = snCells(row, f);
+
+  if (f.op === 'range') {
+    var lo = snNum(f.min), hi = snNum(f.max);
+    return cells.some(function(c) {
+      var n = snNum(c);
+      if (isNaN(n)) return false;
+      if (!isNaN(lo) && n < lo) return false;
+      if (!isNaN(hi) && n > hi) return false;
+      return true;
+    });
+  }
+  // Ausschluss gilt fuer die ganze Zeile: keine der geprueften Zellen darf treffen.
+  if (f.op === 'ncontains') {
+    return !cells.some(function(c) { return snTextHit(c, f.vals); });
+  }
+  return cells.some(function(c) { return snTextHit(c, f.vals); });
+}
+
+/* ── Bedingungen bearbeiten ──────────────────────────────────── */
+
+function snAddFilter() {
+  snFilters.push(snNewFilter(SN_ALL_COLS, 'contains'));
+  snRenderFilters();
+  snRefresh();
+}
+
+function snRemoveFilter(i) {
+  snFilters.splice(i, 1);
+  snRenderFilters();
+  snRefresh();
+}
+
+function snResetFilters() {
+  snFilters = [];
+  document.getElementById('sn-quick').value = '';
+  snRenderFilters();
+  snRefresh();
+}
+
+function snSetCol(i, val) {
+  snFilters[i].col = Number(val);
+  snRenderFilters();          // Vorschlagsliste haengt an der Spalte
+  snRefresh();
+}
+
+function snSetOp(i, val) {
+  snFilters[i].op = val;
+  snRenderFilters();          // andere Eingabefelder je Operator
+  snRefresh();
+}
+
+function snSetRange(i) {
+  snFilters[i].min = document.getElementById('sn-min' + i).value;
+  snFilters[i].max = document.getElementById('sn-max' + i).value;
+  snRefresh();
+}
+
+function snChipAdd(i, raw) {
+  var f = snFilters[i], added = false;
+  String(raw).split(/[\n\t]+/).forEach(function(part) {
+    var v = part.trim();
+    if (v !== '' && f.vals.indexOf(v) === -1) { f.vals.push(v); added = true; }
+  });
+  f.draft = '';
+  if (!added) return false;
+  snRenderFilter(i);
+  var box = document.getElementById('sn-fi' + i);
+  if (box) box.focus();
+  snRefresh();
+  return true;
+}
+
+function snChipKey(ev, i) {
+  if (ev.key === 'Enter') {
+    ev.preventDefault();
+    snChipAdd(i, ev.target.value);
+    if (document.getElementById('sn-fi' + i)) document.getElementById('sn-fi' + i).value = '';
+  } else if (ev.key === 'Backspace' && ev.target.value === '' && snFilters[i].vals.length > 0) {
+    snFilters[i].vals.pop();
+    snRenderFilter(i);
+    var box = document.getElementById('sn-fi' + i);
+    if (box) box.focus();
+    snRefresh();
+  }
+}
+
+function snChipBlur(i, val) {
+  if (val.trim() === '') return;      // leerer Entwurf: nichts neu zeichnen
+  snChipAdd(i, val);
+}
+
+/* Per mousedown statt click: blur des Eingabefeldes wuerde die Zeile
+   sonst neu zeichnen, bevor der Klick ankommt. */
+function snChipDel(i, idx) {
+  snFilters[i].vals.splice(idx, 1);
+  snRenderFilter(i);
+  snRefresh();
+}
+
+/* Vorschlaege einer Spalte, haeufigste zuerst. */
+function snDistinct(col) {
+  if (col === SN_ALL_COLS) return [];
+  var counts = Object.create(null);
+  snRows.forEach(function(r) {
+    var v = (r[col] == null ? '' : r[col]).trim();
+    if (v !== '') counts[v] = (counts[v] || 0) + 1;
+  });
+  var werte = Object.keys(counts);
+
+  // Build-Daten gehoeren chronologisch sortiert, neueste zuerst – nach
+  // Haeufigkeit zu ordnen sagt bei Firmware-Staenden nichts aus.
+  var nurDaten = werte.length > 0 && werte.every(function(v) { return snDateKey(v) > 0; });
+  if (nurDaten) {
+    return werte.sort(function(a, b) { return snDateKey(b) - snDateKey(a); })
+                .slice(0, SN_SUGGEST_MAX);
+  }
+  // CAN- und Tachostaende genauso: hoechste Version oben.
+  var nurVersionen = werte.length > 0 && werte.every(function(v) { return snVersionParts(v) !== null; });
+  if (nurVersionen) {
+    return werte.sort(snVersionCmp).slice(0, SN_SUGGEST_MAX);
+  }
+
+  return werte.sort(function(a, b) {
+    return counts[b] - counts[a] || a.localeCompare(b, 'de');
+  }).slice(0, SN_SUGGEST_MAX);
+}
+
+/* ── Zeichnen ────────────────────────────────────────────────── */
+
+function snRenderFilters() {
+  document.getElementById('sn-filters').innerHTML = snFilters.map(function(f, i) {
+    return '<div class="sn-filter" id="sn-f' + i + '"></div>';
+  }).join('');
+  snFilters.forEach(function(f, i) { snRenderFilter(i); });
+}
+
+function snRenderFilter(i) {
+  var f = snFilters[i];
+  var box = document.getElementById('sn-f' + i);
+  if (!box) return;
+
+  var h = '<select class="admin-select" onchange="snSetCol(' + i + ', this.value)">';
+  h += '<option value="' + SN_ALL_COLS + '"' + (f.col === SN_ALL_COLS ? ' selected' : '') + '>Alle Spalten</option>';
+  snCols.forEach(function(name, c) {
+    h += '<option value="' + c + '"' + (f.col === c ? ' selected' : '') + '>' + zcEsc(name) + '</option>';
+  });
+  h += '</select>';
+
+  h += '<select class="admin-select sn-op" onchange="snSetOp(' + i + ', this.value)">';
+  SN_OPS.forEach(function(op) {
+    h += '<option value="' + op[0] + '"' + (f.op === op[0] ? ' selected' : '') + '>' + op[1] + '</option>';
+  });
+  h += '</select>';
+
+  h += '<div class="sn-vals">';
+  if (SN_TEXT_OPS.indexOf(f.op) !== -1) {
+    h += '<div class="sn-chips">';
+    f.vals.forEach(function(v, n) {
+      h += '<span class="sn-chip"><span>' + zcEsc(v) + '</span>';
+      h += '<button type="button" title="entfernen" onmousedown="snChipDel(' + i + ',' + n + '); return false;">✕</button></span>';
+    });
+    h += '<input class="sn-chip-input" id="sn-fi' + i + '" type="text" autocomplete="off"' +
+         ' list="sn-dl' + i + '" placeholder="' + (f.vals.length ? 'weiterer Wert…' : 'Wert eingeben') + '"' +
+         ' onkeydown="snChipKey(event,' + i + ')" onblur="snChipBlur(' + i + ', this.value)">';
+    h += '</div>';
+    var sugg = snDistinct(f.col);
+    if (sugg.length) {
+      h += '<datalist id="sn-dl' + i + '">';
+      sugg.forEach(function(v) { h += '<option value="' + zcEsc(v) + '"></option>'; });
+      h += '</datalist>';
+    }
+  } else if (f.op === 'range') {
+    h += '<div class="sn-range">';
+    h += '<input class="admin-input" id="sn-min' + i + '" type="text" inputmode="numeric" placeholder="von"' +
+         ' value="' + zcEsc(f.min) + '" oninput="snSetRange(' + i + ')">';
+    h += '<span>bis</span>';
+    h += '<input class="admin-input" id="sn-max' + i + '" type="text" inputmode="numeric" placeholder="bis"' +
+         ' value="' + zcEsc(f.max) + '" oninput="snSetRange(' + i + ')">';
+    h += '</div>';
+  }
+  h += '</div>';
+
+  h += '<button class="sn-del" type="button" title="Bedingung entfernen" onclick="snRemoveFilter(' + i + ')">✕</button>';
+  box.innerHTML = h;
+}
+
+function snRefresh() {
+  if (snCols.length === 0) return;
+
+  var quick  = snNorm(document.getElementById('sn-quick').value);
+  var active = snFilters.filter(snActive);
+
+  snHits = snRows.filter(function(row) {
+    if (quick !== '' && !row.some(function(c) { return snNorm(c).indexOf(quick) !== -1; })) return false;
+    return active.every(function(f) { return snMatch(row, f); });
+  });
+
+  var outCol = Number(document.getElementById('sn-col').value) || 0;
+  var sep    = document.getElementById('sn-sep').value || '|';
+
+  // Doppelte Seriennummern immer nur einmal – eine Liste zum Einfuegen
+  // braucht jede Nummer genau einmal.
+  snList = [];
+  var seen = Object.create(null), skipped = 0;
+  snHits.forEach(function(row) {
+    var v = (row[outCol] == null ? '' : row[outCol]).trim();
+    if (v === '') { skipped++; return; }
+    if (seen[v]) return;
+    seen[v] = true;
+    snList.push(v);
+  });
+
+  document.getElementById('sn-out').value = snList.join(sep);
+  document.getElementById('sn-stat-rows').textContent    = snRows.length;
+  document.getElementById('sn-stat-hits').textContent    = snHits.length;
+  document.getElementById('sn-stat-serials').textContent = snList.length;
+  document.getElementById('sn-stat-filters').textContent = active.length + (quick === '' ? 0 : 1);
+  document.getElementById('sn-out-note').textContent =
+    skipped > 0 ? skipped + ' Treffer ohne Wert in der Ausgabespalte uebersprungen' : '';
+
+  snRenderTable(outCol);
+}
+
+function snRenderTable(outCol) {
+  var shown = snHits.slice(0, SN_PREVIEW_ROWS);
+  var h = '<thead><tr>';
+  snCols.forEach(function(name, c) {
+    h += '<th' + (c === outCol ? ' class="is-out"' : '') + '>' + zcEsc(name) + '</th>';
+  });
+  h += '</tr></thead><tbody>';
+
+  if (shown.length === 0) {
+    h += '<tr><td class="sn-empty" colspan="' + snCols.length + '">Keine Zeile erfuellt alle Bedingungen.</td></tr>';
+  } else {
+    shown.forEach(function(row) {
+      h += '<tr>';
+      row.forEach(function(cell, c) {
+        h += '<td' + (c === outCol ? ' class="is-out"' : '') + ' title="' + zcEsc(cell) + '">' + zcEsc(cell) + '</td>';
+      });
+      h += '</tr>';
+    });
+  }
+  h += '</tbody>';
+  document.getElementById('sn-table').innerHTML = h;
+
+  document.getElementById('sn-table-note').textContent =
+    snHits.length > SN_PREVIEW_ROWS
+      ? 'Zeigt die ersten ' + SN_PREVIEW_ROWS + ' von ' + snHits.length + ' Zeilen – die Liste oben enthaelt alle.'
+      : '';
+}
+
+/* ── Ausgeben ────────────────────────────────────────────────── */
+
+function snCopy() {
+  var out = document.getElementById('sn-out');
+  if (!out.value) { setStatus('sn-status', 'Nichts zu kopieren.', 'error'); return; }
+  var done = function() { setStatus('sn-status', snList.length + ' Seriennummern kopiert.', 'success'); };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(out.value).then(done, function() { snCopyFallback(out, done); });
+  } else {
+    snCopyFallback(out, done);
+  }
+}
+
+/* Ohne Clipboard-API (aelterer Browser, kein sicherer Kontext). */
+function snCopyFallback(out, done) {
+  out.removeAttribute('readonly');
+  out.select();
+  var ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  out.setAttribute('readonly', 'readonly');
+  if (ok) done();
+  else setStatus('sn-status', 'Kopieren nicht moeglich – Text bitte von Hand markieren.', 'error');
+}
+
+function snDownload() {
+  if (!snList.length) { setStatus('sn-status', 'Nichts zu speichern.', 'error'); return; }
+  var blob = new Blob([document.getElementById('sn-out').value], { type: 'text/plain;charset=utf-8' });
+  var url  = URL.createObjectURL(blob);
+  var a    = document.createElement('a');
+  a.href = url;
+  a.download = 'seriennummern.txt';
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 </script>
