@@ -6,13 +6,14 @@ Produkt-Briefing für ITB.BERICHTE — ergänzt [CLAUDE.md](CLAUDE.md) (technisc
 
 ITB.BERICHTE ist ein internes Werkzeug für die Auswertung von Telematik-/Fahrzeugdaten:
 
-- **Decoder** — übersetzt rohe Gerätekonfigurationsstrings (`ZCONFIG`, `ZVALUE`, `DATACONFIG`, `CHECKTMR`, `EVENT`) von Telematik-Trackern in lesbare Bit-für-Bit-Beschreibungen, damit man ohne Handbuch nachvollziehen kann, was ein Gerät gerade tut oder tun soll. Im selben Reiter liegt die **CAN Verfuegbarkeit**: Modell und Baujahr eingeben (z. B. „MAN TGX 2024") und ablesen, welche CAN-Werte das S10-Modul bei diesem Fahrzeug überhaupt liefern kann — die Frage, die vor jedem Einbau ansteht.
+- **Decoder** — übersetzt rohe Gerätekonfigurationsstrings (`ZCONFIG`, `ZVALUE`, `DATACONFIG`, `CHECKTMR`, `EVENT`) von Telematik-Trackern in lesbare Bit-für-Bit-Beschreibungen, damit man ohne Handbuch nachvollziehen kann, was ein Gerät gerade tut oder tun soll. Ein eigener Reiter daneben ist die **CAN Verfuegbarkeit**: Modell und Baujahr eingeben (z. B. „MAN TGX 2024") und ablesen, welche CAN-Werte das S10-Modul bei diesem Fahrzeug überhaupt liefern kann — die Frage, die vor jedem Einbau ansteht.
 - **KM-Pruefung** — prüft Fahrten-Exporte (XLSX) auf Kilometerstand-Fehler (Sprünge, eingefrorene Serien), um fehlerhafte oder manipulierte Fahrtenbuch-Daten zu erkennen.
 - **PTO-Erkennung** — erkennt aus Detailberichten, welche Fahrzeuge Zapfwellen-/Zusatzaggregat-Nutzung (PTO) hatten.
+- **Seriennummern** — filtert einen CSV-Geräteexport über beliebig viele Bedingungen (Nummernkreis, Firmware-Stand, Kunde, Modell …) und gibt die Seriennummern der übrig gebliebenen Fahrzeuge als eine mit `|` getrennte Liste aus, wie sie die Nachbarsysteme zum Einfügen erwarten.
 - **Admin** — Wissens-Overlay, mit dem eigene Beschreibungstexte auf einzelne Decoder-Bits gelegt werden können, ohne die eingebauten Lookup-Tabellen zu verändern.
 - **Import** (Unterreiter im Admin) — macht aus einer im Browser gespeicherten Hersteller-Anleitung (`.htm` plus `_files`-Ordner) eine durchgehende PDF zum Herunterladen.
 
-Zielgruppe: interne Nutzung durch den/die Entwickler:in bzw. wenige technisch versierte Kolleg:innen, kein Endkunden-Produkt. Alle vier Tabs sind eigenständige Werkzeuge, die dieselbe Datenbasis (Telematikgeräte/Fahrzeugberichte desselben Kontexts) aus unterschiedlichen Blickwinkeln bearbeiten.
+Zielgruppe: interne Nutzung durch den/die Entwickler:in bzw. wenige technisch versierte Kolleg:innen, kein Endkunden-Produkt. Alle Reiter sind eigenständige Werkzeuge, die dieselbe Datenbasis (Telematikgeräte/Fahrzeugberichte desselben Kontexts) aus unterschiedlichen Blickwinkeln bearbeiten.
 
 ## Nicht verhandelbare Leitplanken
 
@@ -32,11 +33,31 @@ Diese Punkte sind bewusste Architekturentscheidungen und dürfen nicht ohne ausd
 
 ## Erledigt
 
+- **Reiterleiste neu geordnet, CAN Verfuegbarkeit als eigener Reiter** *(09.09.2026)* — Reihenfolge ist jetzt **Decoder · Seriennummern · CAN Verfuegbarkeit · KM-Pruefung · PTO-Erkennung · Admin**. Die CAN-Suche lag bisher als zweiter Bereich im Decoder-Reiter hinter einer `.zc-fbtn`-Umschaltzeile; sie ist ein vollwertiges Werkzeug und war dort schlicht schwer zu finden. `vehSetPane()` samt `#zc-pane-dec`/`#zc-pane-veh` ist ersatzlos weg — was beim Öffnen passieren muss (Suchfeld fokussieren, Liste aufbauen) erledigt jetzt `showView()`, so wie es das für den Admin-Reiter schon tat.
+
+  Sechs Reiter passen auf schmalen Schirmen nicht mehr in eine Zeile, deshalb bricht die Leiste dort um (`flex-wrap`) und die Reiter bekommen engere Polsterung — vorher hätte die ganze Seite horizontal gescrollt.
+
+- **Seriennummern-Reiter** *(09.09.2026)* — ein CSV-Geräteexport wird abgelegt, beliebig viele Bedingungen grenzen ihn ein, und unten steht die fertige, mit `|` getrennte Seriennummernliste zum Kopieren (`151759|258941|258943`). Jede Bedingung ist eine Zeile aus *Spalte* (oder „Alle Spalten"), *Operator* (`enthaelt`, `enthaelt nicht`, `Zahlenbereich` — bewusst nur diese drei) und Wert; die Bedingungen sind UND-verknüpft, mehrere Werte innerhalb einer Bedingung ODER-verknüpft. Damit ist der typische Fall „Nummernkreis 150000–170000 **und** Firmware `Jul 31 2026` oder `Jul  5 2021`" eine einzige Ansicht. Ausgabespalte und Trennzeichen sind einstellbar, doppelte Nummern fallen immer weg, darunter liegt eine Trefferliste als Tabelle.
+
+  **Die Firmware-Spalte wird aufgeteilt.** `Jul 10 2025 18:05:34 | C:2.3.12 b [0] | T:2.1.7.9` sind drei Stände in einem Feld: die Geräte-Firmware (die über ihr Build-Datum benannt wird), die CAN-Firmware hinter `C:` und die Tachoversion hinter `T:`. Der Reiter zieht das beim Einlesen auseinander: CAN und Tacho werden zu den eigenen Spalten *Firmware - CAN* und *Firmware - Tacho* direkt hinter dem Original, und **die Firmware-Spalte selbst behält nur das Build-Datum** (`Jul 10 2025 18:05:34 | C:… | T:…` → `Jul 10 2025`). Damit filtert jeder Stand für sich: „alle mit CAN-Stand 2.3.9 e", „Tachoversion 2.1.7", „Firmware Jul 31 2026".
+
+  Warum gekürzt wird: Uhrzeit und die beiden hinteren Stände zersplittern eine Firmware sonst über viele Werte — **186 verschiedene Zeichenketten gegenüber 52 Datumswerten**. Erst dadurch ist die Vorschlagsliste auf dieser Spalte überhaupt brauchbar.
+
+  **Das Format wird erzwungen, nicht nur gesucht:** in der Spalte steht am Ende ein Datum `Mon T JJJJ` oder gar nichts. Werte, die nicht so beginnen (`Level`, atrack `Rev.1.10 Build.260600` — 15 Zeilen), sind in diesem Sinn keine Firmware und fallen weg, statt als Fremdtext in einer Datumsspalte zu stehen; diese Geräte bleiben über *Device Typ* und *Modell* auffindbar.
+
+  **Die Vorschlagslisten stehen sortiert, der aktuellste Stand oben:** Build-Daten chronologisch (neuestes zuerst), CAN- und Tacho-Versionen numerisch (höchste zuerst — `2.3.12` über `2.3.9`, was ein Textvergleich falsch herum sortieren würde, und `3.0.24 h` über `3.0.24 g`). Nach Häufigkeit zu sortieren sagt bei Firmware-Ständen nichts aus; die Frage ist immer „was ist der neueste/höchste Stand". Die Sortierung hängt an der Art der Werte, nicht an einem festen Spaltennamen — alle anderen Spalten bleiben nach Häufigkeit sortiert, deutsche Datumsangaben (`27.06.2022 10:23`) ausdrücklich eingeschlossen, weil sie sonst nach Kalendertag statt chronologisch stünden.
+
+  Das Kürzen ist die **einzige** Stelle, an der der Reiter einen gelieferten Zellwert verändert. Angezeigt wird das nicht: die Statusleiste meldet nur noch Fehler und die Kopier-Bestätigung, ein grünes Band nach jedem Laden war bei täglicher Nutzung nur Rauschen (Zeilenzahl steht in den Kacheln, Dateiname in der Ablagefläche).
+
+  **Kein neuer Abhängigkeitsbedarf:** die CSV wird von einem eigenen Parser gelesen, nicht von SheetJS — Trennzeichen wird aus der Kopfzeile geraten, BOM, gequotete Felder mit verdoppelten Quotes (der Export enthält JSON), Trennzeichen und Umbrüche im Feld sowie CRLF/LF sind abgedeckt; UTF-8 mit Rückfall auf windows-1252. Wie bei den XLSX-Reitern **verlässt die Datei den Browser nicht** (Leitplanke 2), es geht nichts an Supabase.
+
+  Ein Detail, das aus den echten Daten kommt: die Firmware-Spalte füllt einstellige Tage mit einem zweiten Leerzeichen auf (`Jul  5 2021`). Verglichen wird deshalb mit zusammengefassten Leerzeichen, damit ein getipptes `Jul 5 2021` trifft.
+
 - **CAN Verfuegbarkeit im Decoder-Reiter** *(03.09.2026)* — Freitextsuche über 919 Modelle: „MAN TGX 2024" führt zu den Generationen, deren Baujahresbereich das Jahr enthält; abweichende Generationen stehen darunter unter „Andere Generationen". Die Detailansicht zeigt gruppiert, welche der 64 CAN-Werte das Modell liefert (`JA` / `BEDINGT` bei kontaktloser Anbindung), dazu die digitalen Zustandsanzeigen und die Fußnoten der Vorlage. Standardmäßig sind alle Parameter zu sehen ("Alle Parameter"), auf Wunsch nur die tatsächlich verfügbaren ("Nur verfuegbare"); ein Suchfeld filtert zusätzlich nach Parameternamen (deutsch oder englisch).
 
   **Datenherkunft:** die drei Albatross-Tabellen zum S10-CAN-Modul (Firmware 3.0.28, Stand 27.08.2026). Die On-Road-Tabelle ist die Obermenge — alle 125 Lkw-/Bus- und alle 98 E-Auto-Zeilen stehen dort zeichengleich drin —, deshalb liegt nur **eine** Liste in `VEH_DB`; das letzte Feld je Zeile vermerkt nur, in welcher Spezialtabelle ein Modell zusätzlich geführt wird. Die Tabellen sind Rastergrafik-artig gesetzt (Häkchen in einer Symbolschrift ohne Spaltenbezug im Text), die Zuordnung Häkchen → Spalte kommt daher aus den x-Koordinaten: 31.236 Markierungen, größte Abweichung von einer Spaltenmitte 0,20 pt bei 6,24 pt halber Spaltenbreite, und die Summe je Symbolart stimmt mit den Zeilen überein. `VEH_DB` ist damit **Fachdatum wie `ZC_DEFS`** (Leitplanke 6) — Änderungen nur gegen eine neue Herstellertabelle, nicht per Hand.
 
-  Umgesetzt ohne neue Abhängigkeit, ohne Server und ohne zusätzlichen Reiter: die Suche ist ein zweiter Bereich im Decoder-Reiter, umgeschaltet über eine `.zc-fbtn`-Zeile.
+  Umgesetzt ohne neue Abhängigkeit und ohne Server. Sie lag zunächst als zweiter Bereich im Decoder-Reiter, umgeschaltet über eine `.zc-fbtn`-Zeile; seit dem Umbau der Reiterleiste (09.09.2026) ist sie ein **eigener Reiter** — der versteckte Umschalter war für ein Werkzeug dieser Größe die falsche Ablage.
 
 - **Import-Unterreiter: Web-Anleitung als PDF** *(28.08.2026)* — aus der Schwester-App [itb-wissensdatenbank](https://github.com/Lucasniii/itb-wissensdatenbank) übernommen. Man legt den Ordner ab, in dem eine mit „Seite speichern unter“ abgelegte Hersteller-Anleitung liegt (genau eine `.htm`-Datei plus der gleichnamige `_files`-Ordner), oder wählt ihn über den Knopf; daraus wird eine durchgehende A4-PDF gebaut und sofort heruntergeladen. Ablegen geht sowohl mit dem Elternordner als auch mit `.htm` und `_files`-Ordner nebeneinander. Die ausführliche Erklärung hängt am `i` neben der Überschrift statt dauerhaft im Panel zu stehen.
 
