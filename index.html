@@ -702,7 +702,10 @@
 
 <nav class="tabs">
   <button class="tab active" data-view="zconfig">Decoder</button>
-  <button class="tab" data-view="serial">Seriennummern</button>
+  <!-- Vorerst ausgeblendet: der Reiter ist fertig, soll aber noch nicht im
+       Team auftauchen. Zum Freischalten nur style="display:none" loeschen.
+       Erreichbar bleibt er ueber showView('serial') in der Konsole. -->
+  <button class="tab" data-view="serial" id="tab-serial" style="display:none">Seriennummern</button>
   <button class="tab" data-view="veh">CAN Verfuegbarkeit</button>
   <button class="tab" data-view="pruef">KM-Pruefung</button>
   <button class="tab" data-view="merge">PTO-Erkennung</button>
