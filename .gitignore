@@ -5,12 +5,3 @@
 .vscode/
 .idea/
 *.swp
-
-# Local development assistants / editor automation
-CLAUDE.md
-AGENTS.md
-.claude/
-.codex/
-.cursor/
-.cursorrules
-.github/copilot-instructions.md
