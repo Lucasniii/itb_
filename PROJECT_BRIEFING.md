@@ -1,6 +1,6 @@
 # PROJECT_BRIEFING.md
 
-Produkt-Briefing für ITB.BERICHTE — ergänzt [CLAUDE.md](CLAUDE.md) (technische Konventionen) um Produktzweck, Leitplanken, Roadmap und offene Entscheidungen. Vor dem Start eines neuen Features hier nachlesen.
+Produkt-Briefing für ITB.BERICHTE — ergänzt [DEVELOPMENT.md](DEVELOPMENT.md) (technische Konventionen) um Produktzweck, Leitplanken, Roadmap und offene Entscheidungen. Vor dem Start eines neuen Features hier nachlesen.
 
 ## Produktzweck
 
@@ -25,7 +25,7 @@ Diese Punkte sind bewusste Architekturentscheidungen und dürfen nicht ohne ausd
 4. **Freigabepflicht liegt in der Datenbank, nicht im Frontend.** Wer Wissensinhalte schreibt, tut das über Tabellen mit `status`-Spalte und `guard_review`-Trigger. Neue Inhaltstabellen bekommen denselben Trigger — Sichtbarkeit ohne Admin-Freigabe darf nie allein davon abhängen, dass die Oberfläche einen Button versteckt.
 5. **Single-File-Architektur bleibt erhalten.** Kein Umbau auf ein Build-System, Framework oder Modulsystem, solange nicht ausdrücklich gewünscht — die Einfachheit (eine Datei öffnen/hosten reicht) ist ein Feature, kein technisches Schulden-Problem.
 6. **Bestehende Decoder-Lookup-Tabellen (`ZC_DEFS`, `DATACONFIG_DEFS`, `EVENT_DEFS`, …) sind Fachdaten, keine beliebig editierbaren Konstanten.** Änderungen an Bit-Bedeutungen nur auf Basis verifizierter Gerätedokumentation, nicht aus Vermutung.
-7. **Sprachkonvention einhalten**: UI und fachliche Kommentare bleiben Deutsch (mit ae/oe/ue-Ersatz), siehe [CLAUDE.md](CLAUDE.md).
+7. **Sprachkonvention einhalten**: UI und fachliche Kommentare bleiben Deutsch (mit ae/oe/ue-Ersatz), siehe [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Priorisierte Roadmap
 
@@ -63,14 +63,14 @@ Diese Punkte sind bewusste Architekturentscheidungen und dürfen nicht ohne ausd
 
   **Unterschied zur Vorlage:** dort landet das Ergebnis als Entwurf in der Wissensdatenbank samt KI-Suchindex. Diese App hat keine Wissensdatenbank — hier wird die PDF nur erzeugt und heruntergeladen. Die Dateien verlassen den Browser nicht, es geht nichts an Supabase (Leitplanke 2).
 
-  **Zwei neue CDN-Abhängigkeiten** (beide mit SRI-Hash und `crossorigin`, siehe [CLAUDE.md](CLAUDE.md)): `html2canvas` 1.4.1 rastert die aufbereitete Seite, `jspdf` 4.2.1 schneidet sie in A4-Seiten. Ohne die beiden ist das Feature nicht baubar; jsPDF ist bewusst 4.x statt der 2.5.1 der Vorlage, weil ältere Versionen bekannte Schwachstellen haben — dieselbe Überlegung wie beim SheetJS-Wechsel.
+  **Zwei neue CDN-Abhängigkeiten** (beide mit SRI-Hash und `crossorigin`, siehe [DEVELOPMENT.md](DEVELOPMENT.md)): `html2canvas` 1.4.1 rastert die aufbereitete Seite, `jspdf` 4.2.1 schneidet sie in A4-Seiten. Ohne die beiden ist das Feature nicht baubar; jsPDF ist bewusst 4.x statt der 2.5.1 der Vorlage, weil ältere Versionen bekannte Schwachstellen haben — dieselbe Überlegung wie beim SheetJS-Wechsel.
 
   Sicherheit: aus der fremden Seite wird nichts ausgeführt. `script`, `iframe`, `form`, alle `on*`-Attribute und alle `href`s werden vor dem Rendern entfernt, aufgebaut wird in einem eigenen Off-Screen-`srcdoc`-iframe.
 
 - **Supabase-Anbindung mit Mehrbenutzer-Login** *(23.08.2026)* — eigenes Projekt `ITB.BERICHTE` (`jkxxgvhknswhbayvmmoc`, eu-central-1); Admin-Feature-Beschreibungen liegen zentral statt in `localStorage` und sind für alle angemeldeten Kolleg:innen sichtbar. Login per E-Mail/Passwort. Einmalige Übernahme alter lokaler Features ist im Admin-Tab eingebaut.
 - **Rollen & Freigabe-Workflow** *(23.08.2026)* — zwei Rollen in `profiles.role`: **user** darf einreichen und eigene, noch nicht freigegebene Decoder-Beschreibungen bearbeiten; **admin** gibt frei, lehnt ab und vergibt Rollen. Neue Registrierungen sind immer `user`. Eingereichtes erscheint erst nach Freigabe im Decoder; ein Änderungsvorschlag zu einer bereits freigegebenen Position verdrängt den freigegebenen Stand nicht, sondern liegt daneben, bis ein Admin ihn freigibt (dann ersetzt er ihn). Durchgesetzt wird das serverseitig durch Trigger (`guard_review`, `guard_profile_role`) und RLS — der Client kann den Status nicht setzen, auch nicht mit manipulierten Requests. Der letzte Admin kann sich die Rechte nicht selbst entziehen; Notausgang bleibt der Supabase-SQL-Editor.
 
-  **Sichtbarkeit:** Der Admin-Reiter ist ausdrücklich nur für Admins sichtbar — Nicht-Admins sehen ihn gar nicht; für sie ist die App ein reines Nachschlagewerk. Weil der Login im Admin-Reiter steckt, gibt es einen **„Anmelden"-Knopf in der Kopfzeile**. Details in [CLAUDE.md](CLAUDE.md).
+  **Sichtbarkeit:** Der Admin-Reiter ist ausdrücklich nur für Admins sichtbar — Nicht-Admins sehen ihn gar nicht; für sie ist die App ein reines Nachschlagewerk. Weil der Login im Admin-Reiter steckt, gibt es einen **„Anmelden"-Knopf in der Kopfzeile**. Details in [DEVELOPMENT.md](DEVELOPMENT.md).
 
   Der Admin-Reiter hatte damals zwei Unterreiter: **Feature anlegen** (Formular, Liste, offene Freigaben) und **Benutzer & Rollen**. Seit dem Import-Feature sind es drei, in der Reihenfolge **Feature anlegen**, **Import**, **Benutzer & Rollen**.
 - **Sicherheits-Nachzug** *(23.08.2026)* — drei Punkte aus einer Stichprobenprüfung behoben: (1) Kennzeichen, Datums-/Zeitwerte und Dateinamen aus hochgeladenen XLSX gingen ungeescaped ins DOM und hätten über eine präparierte Datei Skript ausführen können — laufen jetzt alle durch `zcEsc()`; (2) die drei CDN-Skripte haben SRI-Hashes und `crossorigin` bekommen, SheetJS ist von 0.18.5 (bekannte Schwachstellen, npm/cdnjs gehen nicht höher) auf 0.20.3 vom Hersteller-CDN gewechselt — die von der App genutzten APIs sind vorher in Node gegen beide Versionen geprüft worden und liefern identische Ergebnisse; (3) `anon` hatte auf SQL-Ebene noch die Supabase-Standardrechte, die nur durch RLS ins Leere liefen — jetzt zusätzlich entzogen, inklusive Default-Privilegien für künftige Tabellen. **Offen und nicht durch Code lösbar:** die Registrierung wird im Supabase-Dashboard geregelt (siehe Leitplanke 1).
@@ -85,7 +85,7 @@ Aktuell sind keine offenen Produktentscheidungen dokumentiert.
 Vorlage, um eine neue Feature-Session in diesem Repo sauber zu starten (an den konkreten Task anpassen):
 
 ```
-Kontext: ITB.BERICHTE, Single-File-App (index.html). Lies CLAUDE.md
+Kontext: ITB.BERICHTE, Single-File-App (index.html). Lies DEVELOPMENT.md
 (technische Konventionen: Farben, Typografie, Komponentenmuster,
 JS-Stil) und PROJECT_BRIEFING.md (Produktzweck, Leitplanken, Roadmap)
 bevor du startest.
@@ -93,7 +93,7 @@ bevor du startest.
 Aufgabe: <konkrete Aufgabe hier>
 
 Vorgaben:
-- Halte dich an die bestehenden Styles/Patterns aus CLAUDE.md
+- Halte dich an die bestehenden Styles/Patterns aus DEVELOPMENT.md
   (keine neuen Farben/Fonts/Border-Radien erfinden).
 - Keine neuen externen Abhängigkeiten außer bei ausdrücklicher
   Rücksprache.
@@ -102,5 +102,5 @@ Vorgaben:
 - Bei offenen Produktentscheidungen (siehe PROJECT_BRIEFING.md)
   erst nachfragen statt anzunehmen.
 - Nach Umsetzung: `node --check` auf das extrahierte inline JS
-  laufen lassen (siehe CLAUDE.md „Commands").
+  laufen lassen (siehe DEVELOPMENT.md „Commands").
 ```
