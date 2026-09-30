@@ -15,7 +15,7 @@ node --check /tmp/s.js
 
 ## Architecture
 
-Framework-free single file. Five CDN dependencies, each pinned with an SRI `integrity` hash and `crossorigin="anonymous"`: `xlsx.full.min.js` (SheetJS 0.20.3, served from `cdn.sheetjs.com` — npm/cdnjs stop at the vulnerable 0.18.5), `jszip.min.js` (used **directly** by `downloadMarked()`, which rewrites the sheet XML by hand), `supabase-js`, and — for the Import sub-tab only — `html2canvas` 1.4.1 and `jspdf.umd.min.js` 4.2.1 (the UMD build exports `window.jspdf.jsPDF`). Bumping a version means recomputing its hash: `curl -s <url> | openssl dgst -sha384 -binary | openssl base64 -A`. Roboto via a Google Fonts `@import` (no SRI possible on an `@import`).
+Framework-free single file. Five application CDN dependencies plus GoatCounter for page-view analytics, each pinned with an SRI `integrity` hash and `crossorigin="anonymous"`: `xlsx.full.min.js` (SheetJS 0.20.3, served from `cdn.sheetjs.com` — npm/cdnjs stop at the vulnerable 0.18.5), `jszip.min.js` (used **directly** by `downloadMarked()`, which rewrites the sheet XML by hand), `supabase-js`, and — for the Import sub-tab only — `html2canvas` 1.4.1 and `jspdf.umd.min.js` 4.2.1 (the UMD build exports `window.jspdf.jsPDF`). Bumping a version means recomputing its hash: `curl -s <url> | openssl dgst -sha384 -binary | openssl base64 -A`. Roboto via a Google Fonts `@import` (no SRI possible on an `@import`).
 
 **XLSX analysis never leaves the browser** — spreadsheet contents are not uploaded anywhere. Only decoder descriptions are server-backed.
 
@@ -23,7 +23,7 @@ Framework-free single file. Five CDN dependencies, each pinned with an SRI `inte
 
 The applied database state is mirrored as SQL in [supabase/schema.sql](supabase/schema.sql) — a snapshot of what is live, not a migration runner. It is written in dependency order and would replay on an empty database. Keep it in sync when you change the schema.
 
-`SUPABASE_URL`/`SUPABASE_KEY` are hardcoded and public by design — **all access control lives in RLS**, and no policy or grant addresses `anon`. The app ships to public GitHub Pages from a public repo, so anything `anon` could read would be world-readable. There is no usage tracking of any kind; keep it that way.
+`SUPABASE_URL`/`SUPABASE_KEY` are hardcoded and public by design — **all access control lives in RLS**, and no policy or grant addresses `anon`. The app ships to public GitHub Pages from a public repo, so anything `anon` could read would be world-readable. GoatCounter counts page views only, using the pinned script in the document head. Do not add input, click-event, or uploaded-file tracking.
 
 Tables (RLS on, every policy `to authenticated`):
 

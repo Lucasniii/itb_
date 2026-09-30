@@ -35,8 +35,8 @@ Drei Punkte, an denen man sich am schnellsten vergreift:
    `guard_review()` und `guard_profile_role()`. Nie darauf verlassen, dass die
    Oberfläche einen Button versteckt.
 3. **Hochgeladene Dateien verlassen den Browser nie.** Weder XLSX-Inhalte noch die
-   Anleitungs-Ordner des Import-Reiters. Keine Analytics, kein Tracking, kein Upload
-   von Dateiinhalten.
+   Anleitungs-Ordner des Import-Reiters. GoatCounter erfasst ausschließlich Seitenaufrufe; keine Erfassung von Eingaben,
+   Klick-Ereignissen oder Dateiinhalten.
 
 Der angewendete Datenbankstand liegt als SQL unter
 [supabase/schema.sql](supabase/schema.sql).

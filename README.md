@@ -25,6 +25,8 @@ Die Anwendung ist bewusst schlank aufgebaut:
 
 Dateien für KM-Prüfung, Seriennummern, PTO-Erkennung und Import werden lokal im Browser verarbeitet. Inhalte dieser Dateien werden nicht an Supabase übertragen.
 
+GoatCounter erfasst Seitenaufrufe unter `https://lucasni.goatcounter.com`. Die Integration verwendet einen festen Seitennamen, deaktiviert Klick-Ereignisse und übermittelt keine Formulareingaben oder Dateiinhalte. Auf der Website ist ein aufklappbarer Datenschutzhinweis vorhanden.
+
 ## Start
 
 Für eine lokale Vorschau kann das Repository direkt über einen einfachen Webserver gestartet werden:
